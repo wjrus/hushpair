@@ -1,0 +1,516 @@
+<% content_for :title, "Room #{@room.slug}" %>
+
+<main class="shell room-shell" id="main-content">
+  <% if @room.expired? && @participant.blank? %>
+    <section class="card utility-card">
+      <h2>Room expired</h2>
+      <p class="compact-lede">This room is no longer available.</p>
+    </section>
+  <% end %>
+
+  <% if @invite_preview %>
+    <section class="card utility-card invite-preview-card">
+      <p class="eyebrow">Private Invite</p>
+      <h1>You've been invited to <%= @room_display_name %>.</h1>
+      <p class="lede">From <strong><%= @creator_display_name %></strong></p>
+
+      <div class="invite-preview-grid">
+        <div class="invite-preview-item">
+          <span class="toolbar-label">Retention</span>
+          <span class="settings-pill"><%= @room.retention_summary %></span>
+        </div>
+        <div class="invite-preview-item">
+          <span class="toolbar-label">Lifetime</span>
+          <span class="settings-pill"><%= @room_expiry_summary %></span>
+        </div>
+      </div>
+
+      <%= form_with url: join_room_path(@room), method: :post, class: "stack invite-preview-form" do |form| %>
+        <%= hidden_field_tag :invite_token, params[:invite_token] %>
+        <%= form.label :nickname, "Nickname (optional)" %>
+        <%= form.text_field :nickname, maxlength: 40, placeholder: "Night Owl" %>
+        <%= form.submit "Join chat", class: "button" %>
+      <% end %>
+    </section>
+  <% end %>
+
+  <% if @participant.present? %>
+    <section
+      class="card chat-card"
+      data-chat-room-public-id="<%= @room.public_id %>"
+      data-chat-room-status="<%= @room.status %>"
+      data-chat-room-show-url="<%= api_v1_room_path(@room.public_id) %>"
+      data-chat-messages-url="<%= api_v1_room_messages_path(@room.public_id) %>"
+      data-chat-nickname="<%= @participant.nickname.presence || "Anonymous" %>"
+      data-chat-participant-id="<%= @participant.id %>"
+      data-chat-open="<%= @chat_open %>"
+      data-chat-last-seq="<%= @messages.last&.sequence_number || 0 %>"
+      data-chat-room-expires-at="<%= @room.expires_at&.iso8601 %>"
+      data-chat-participant-token="<%= @participant_return_token %>"
+    >
+      <div class="chat-header">
+        <div class="chat-header__status">
+          <span class="room-pill" id="room-pill" role="status" aria-live="polite"><%= @room.status.humanize %></span>
+          <span class="chat-header__identity"><%= @participant.nickname.presence || "Anonymous" %></span>
+        </div>
+        <details class="chat-menu">
+          <summary class="chat-menu__trigger" aria-label="Open chat settings">
+            <span></span>
+            <span></span>
+            <span></span>
+          </summary>
+          <div class="chat-menu__panel">
+            <% if @participant&.creator? && params[:invite_token].present? %>
+              <div class="toolbar-group">
+                <span class="toolbar-label-group">
+                  <span class="toolbar-label">Share</span>
+                  <span class="help-badge" tabindex="0">
+                    ?
+                    <span class="help-popover">Send this invite link to the second participant. Opening it alone does not join the room.</span>
+                  </span>
+                </span>
+                <span class="link-chip" data-copy-value="<%= room_url(@room, invite_token: params[:invite_token]) %>">
+                  <span class="link-chip__text"><%= room_url(@room, invite_token: params[:invite_token]) %></span>
+                  <button class="button button-secondary button-copy" type="button">Copy</button>
+                </span>
+              </div>
+            <% end %>
+
+            <div class="toolbar-pair-grid">
+              <% if @participant_return_url.present? %>
+                <div class="toolbar-group">
+                  <span class="toolbar-label-group">
+                    <span class="toolbar-label">Bookmark</span>
+                    <span class="help-badge" tabindex="0">
+                      ?
+                      <span class="help-popover">Save this private link if you want to return as the same participant before the room expires.</span>
+                    </span>
+                  </span>
+                  <span class="link-chip" data-copy-value="<%= @participant_return_url %>">
+                    <span class="link-chip__text"><%= @participant_return_url %></span>
+                    <button class="button button-secondary button-copy" type="button">Copy</button>
+                  </span>
+                </div>
+              <% end %>
+
+              <div class="toolbar-group toolbar-group-retention">
+                <span class="toolbar-label-group">
+                  <span class="toolbar-label">Message Retention</span>
+                  <span class="help-badge" tabindex="0">
+                    ?
+                    <span class="help-popover">
+                      Controls how much chat history Hushpair keeps for this room.
+                      <% unless @participant&.creator? %>
+                        This setting was chosen by the room creator.
+                      <% end %>
+                    </span>
+                  </span>
+                </span>
+
+                <% if @participant&.creator? %>
+                  <%= form_with url: retention_room_path(@room), method: :patch, class: "toolbar-retention-form" do |form| %>
+                    <%= form.select :message_retention_mode, options_for_select(@retention_options, @room.message_retention_mode), {}, class: "select-input toolbar-input", id: "retention-mode-select" %>
+                    <div class="retention-inline-group retention-detail-group" data-retention-detail="line_count">
+                      <%= form.number_field :message_retention_line_limit, min: 10, max: 10000, step: 10, class: "toolbar-input toolbar-input-small", placeholder: "250" %>
+                      <span class="toolbar-unit">messages</span>
+                    </div>
+                    <div class="retention-inline-group retention-detail-group" data-retention-detail="time_window">
+                      <%= form.number_field :message_retention_hours, min: 1, max: 720, step: 1, class: "toolbar-input toolbar-input-small", placeholder: "24" %>
+                      <span class="toolbar-unit">hours</span>
+                    </div>
+                    <span class="toolbar-unit retention-detail-group" data-retention-detail="forever">room expiry</span>
+                    <% if params[:participant_token].present? %>
+                      <%= hidden_field_tag :participant_token, params[:participant_token] %>
+                    <% end %>
+                    <%= form.submit "Save", class: "button button-secondary button-compact" %>
+                  <% end %>
+                <% else %>
+                  <span class="settings-pill"><%= @room.retention_summary %></span>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="toolbar-group">
+              <span class="toolbar-label-group">
+                <span class="toolbar-label">Lifetime</span>
+                <span class="help-badge" tabindex="0">
+                  ?
+                  <span class="help-popover">Active rooms last 24 hours and extend when new messages are sent, up to 30 days from creation.</span>
+                </span>
+              </span>
+              <span class="settings-pill" id="room-expiry-summary"><%= @room_expiry_summary %></span>
+            </div>
+
+            <div class="toolbar-group toolbar-group-links">
+              <span class="menu-links">
+                <%= link_to "About Hushpair", about_path, class: "menu-link" %>
+              </span>
+            </div>
+
+            <div class="toolbar-group toolbar-group-actions">
+              <span class="toolbar-label">Room</span>
+              <div class="menu-actions">
+                <%= form_with url: leave_room_path(@room), method: :post do %>
+                  <%= hidden_field_tag :participant_token, @participant_return_token if @participant_return_token.present? %>
+                  <%= submit_tag "Leave chat", class: "button button-secondary button-compact" %>
+                <% end %>
+                <%= form_with url: end_chat_room_path(@room), method: :post do %>
+                  <%= hidden_field_tag :participant_token, @participant_return_token if @participant_return_token.present? %>
+                  <%= submit_tag "End chat", class: "button button-secondary button-compact" %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="chat-transcript">
+        <ol class="message-list" id="message-list" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Chat messages">
+          <% @messages.each do |message| %>
+            <li class="message-row <%= message.room_participant_id == @participant.id ? "message-row-local" : "message-row-remote" %>" data-sequence-number="<%= message.sequence_number %>">
+              <div class="message-shell">
+                <span class="message-meta">
+                <strong><%= message.room_participant.nickname.presence || "Anonymous" %></strong>
+                <time datetime="<%= message.created_at.iso8601 %>"><%= message.created_at.strftime("%-I:%M %p") %></time>
+                </span>
+                <span class="message-body"><%= message.body %></span>
+              </div>
+            </li>
+          <% end %>
+        </ol>
+
+        <p class="empty-state <%= "is-hidden" if @messages.any? %>" id="empty-state">
+          No messages yet. Say hello when you're ready.
+        </p>
+      </div>
+
+      <form class="chat-composer" id="chat-form">
+        <div class="composer-footer">
+          <label class="sr-only" for="chat-body">Message</label>
+          <textarea
+            id="chat-body"
+            name="body"
+            rows="1"
+            maxlength="2000"
+            placeholder="Message"
+            aria-describedby="chat-feedback"
+            <%= "disabled" unless @chat_open %>
+          ></textarea>
+          <button class="button chat-send" type="submit" <%= "disabled" unless @chat_open %>>Send</button>
+        </div>
+        <p class="form-note <%= "is-hidden" if @chat_open %>" id="chat-feedback" role="status" aria-live="polite">
+          <%= @chat_open ? "" : "This room is no longer accepting new messages." %>
+        </p>
+      </form>
+    </section>
+  <% end %>
+</main>
+
+<% if @participant.present? %>
+  <script type="module">
+    import consumer from "channels/consumer"
+
+    (() => {
+      const root = document.querySelector("[data-chat-room-public-id]");
+      if (!root) return;
+
+      const messagesUrl = root.dataset.chatMessagesUrl;
+      const roomShowUrl = root.dataset.chatRoomShowUrl;
+      const list = document.getElementById("message-list");
+      const form = document.getElementById("chat-form");
+      const bodyInput = document.getElementById("chat-body");
+      const feedback = document.getElementById("chat-feedback");
+      const emptyState = document.getElementById("empty-state");
+      const roomPill = document.getElementById("room-pill");
+      const roomExpirySummary = document.getElementById("room-expiry-summary");
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+      const localParticipantId = Number(root.dataset.chatParticipantId);
+      const sendButton = form.querySelector("button");
+      const retentionModeSelect = document.getElementById("retention-mode-select");
+      const copyButtons = document.querySelectorAll(".button-copy");
+      const chatMenu = document.querySelector(".chat-menu");
+      const chatMenuTrigger = document.querySelector(".chat-menu__trigger");
+      const participantToken = root.dataset.chatParticipantToken;
+
+      let lastSeq = Number(root.dataset.chatLastSeq || 0);
+      let expiresAt = root.dataset.chatRoomExpiresAt;
+      let roomOpen = root.dataset.chatOpen === "true";
+      let isSending = false;
+      let fallbackMessagesInterval = null;
+      let fallbackRoomInterval = null;
+      let expiryTimeout = null;
+      const renderedSequences = new Set(
+        Array.from(list.querySelectorAll(".message-row")).map((row) => Number(row.dataset.sequenceNumber)).filter(Number.isFinite)
+      );
+
+      const scheduleExpiryTimeout = () => {
+        if (expiryTimeout) window.clearTimeout(expiryTimeout);
+        if (!expiresAt) return;
+
+        const delay = new Date(expiresAt).getTime() - Date.now();
+        if (delay <= 0) {
+          updateComposerState("expired", "Expired", expiresAt);
+          return;
+        }
+
+        expiryTimeout = window.setTimeout(() => {
+          updateComposerState("expired", "Expired", expiresAt);
+        }, delay + 50);
+      };
+
+      const setFeedback = (message, isError = false) => {
+        if (!feedback) return;
+        feedback.textContent = message;
+        feedback.classList.toggle("is-error", isError);
+        feedback.classList.toggle("is-hidden", !message);
+      };
+
+      const appendMessage = (message) => {
+        const sequenceNumber = Number(message.sequence_number);
+        if (renderedSequences.has(sequenceNumber)) return;
+
+        const item = document.createElement("li");
+        const senderId = Number(message.sender.id);
+        item.className = `message-row ${senderId === localParticipantId ? "message-row-local" : "message-row-remote"}`;
+        item.dataset.sequenceNumber = sequenceNumber;
+
+        const shell = document.createElement("div");
+        shell.className = "message-shell";
+
+        const meta = document.createElement("span");
+        meta.className = "message-meta";
+
+        const strong = document.createElement("strong");
+        strong.textContent = message.sender.nickname;
+
+        const time = document.createElement("time");
+        const createdAt = new Date(message.created_at);
+        time.dateTime = message.created_at;
+        time.textContent = createdAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+        const body = document.createElement("span");
+        body.className = "message-body";
+        body.textContent = message.body;
+
+        meta.append(strong, time);
+        shell.append(meta, body);
+        item.append(shell);
+        list.append(item);
+        list.scrollTop = list.scrollHeight;
+        emptyState.classList.add("is-hidden");
+        renderedSequences.add(sequenceNumber);
+        lastSeq = Math.max(lastSeq, sequenceNumber);
+      };
+
+      const updateComposerState = (status, expirySummary = null, nextExpiresAt = null) => {
+        roomPill.textContent = status.replace("_", " ");
+        roomOpen = !["ended", "expired"].includes(status);
+        bodyInput.disabled = !roomOpen;
+        sendButton.disabled = !roomOpen || isSending;
+        if (roomExpirySummary && expirySummary) roomExpirySummary.textContent = expirySummary;
+        if (nextExpiresAt) expiresAt = nextExpiresAt;
+        scheduleExpiryTimeout();
+
+        if (!roomOpen) {
+          setFeedback("This room is closed for new messages.", false);
+        } else {
+          setFeedback("", false);
+        }
+      };
+
+      const autosizeComposer = () => {
+        const maxHeight = 140;
+        const compactHeight = 52;
+        bodyInput.style.height = "0px";
+        bodyInput.style.height = `${Math.min(bodyInput.scrollHeight, maxHeight)}px`;
+        bodyInput.classList.toggle("is-scrollable", bodyInput.scrollHeight > compactHeight);
+      };
+
+      const syncRetentionFields = () => {
+        if (!retentionModeSelect) return;
+
+        document.querySelectorAll("[data-retention-detail]").forEach((element) => {
+          element.classList.toggle("is-hidden", element.dataset.retentionDetail !== retentionModeSelect.value);
+        });
+      };
+
+      const syncMessages = async () => {
+        try {
+          const response = await fetch(`${messagesUrl}?after_seq=${lastSeq}`, {
+            headers: { Accept: "application/json" },
+            credentials: "same-origin"
+          });
+
+          if (!response.ok) return;
+          const payload = await response.json();
+          (payload.messages || []).forEach(appendMessage);
+        } catch (_) {
+        }
+      };
+
+      const syncRoomState = async () => {
+        try {
+          const response = await fetch(roomShowUrl, {
+            headers: { Accept: "application/json" },
+            credentials: "same-origin"
+          });
+
+          if (!response.ok) return;
+          const payload = await response.json();
+          if (payload.room?.status) updateComposerState(payload.room.status, payload.room.expiry_summary, payload.room.expires_at);
+        } catch (_) {
+        }
+      };
+
+      const startFallbackSync = () => {
+        if (!fallbackMessagesInterval) {
+          fallbackMessagesInterval = window.setInterval(syncMessages, 15000);
+        }
+        if (!fallbackRoomInterval) {
+          fallbackRoomInterval = window.setInterval(syncRoomState, 30000);
+        }
+      };
+
+      const stopFallbackSync = () => {
+        if (fallbackMessagesInterval) {
+          window.clearInterval(fallbackMessagesInterval);
+          fallbackMessagesInterval = null;
+        }
+        if (fallbackRoomInterval) {
+          window.clearInterval(fallbackRoomInterval);
+          fallbackRoomInterval = null;
+        }
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const body = bodyInput.value.trim();
+        if (!body || !roomOpen || isSending) return;
+
+        isSending = true;
+        sendButton.disabled = true;
+        setFeedback("Sending...");
+
+        try {
+          const response = await fetch(messagesUrl, {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "X-CSRF-Token": csrfToken
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({ body })
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            setFeedback(payload.error || "Message failed to send.", true);
+            return;
+          }
+
+          appendMessage(payload.message);
+          if (payload.room?.status) updateComposerState(payload.room.status, payload.room.expiry_summary, payload.room.expires_at);
+          bodyInput.value = "";
+          autosizeComposer();
+          setFeedback("", false);
+        } catch (_) {
+          setFeedback("Network error while sending.", true);
+        } finally {
+          isSending = false;
+          sendButton.disabled = !roomOpen;
+        }
+      });
+
+      bodyInput.addEventListener("input", autosizeComposer);
+      bodyInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          form.requestSubmit();
+        }
+      });
+      retentionModeSelect?.addEventListener("change", syncRetentionFields);
+      if (chatMenu && chatMenuTrigger) {
+        chatMenuTrigger.setAttribute("aria-expanded", String(chatMenu.open));
+        chatMenu.addEventListener("toggle", () => {
+          chatMenuTrigger.setAttribute("aria-expanded", String(chatMenu.open));
+        });
+      }
+      document.addEventListener("click", (event) => {
+        if (!chatMenu?.open) return;
+        if (chatMenu.contains(event.target)) return;
+
+        chatMenu.open = false;
+      });
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const chip = button.closest("[data-copy-value]");
+          const value = chip?.dataset.copyValue;
+          if (!value) return;
+
+          try {
+            await navigator.clipboard.writeText(value);
+            const originalText = button.textContent;
+            button.textContent = "Copied";
+            window.setTimeout(() => {
+              button.textContent = originalText;
+            }, 1200);
+          } catch (_) {
+            button.textContent = "Copy failed";
+          }
+        });
+      });
+
+      list.scrollTop = list.scrollHeight;
+      autosizeComposer();
+      syncRetentionFields();
+      updateComposerState(root.dataset.chatRoomStatus, roomExpirySummary?.textContent, expiresAt);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          syncMessages();
+          syncRoomState();
+        }
+      });
+
+      if (participantToken) {
+        consumer.subscriptions.create(
+          {
+            channel: "RoomChannel",
+            room_public_id: root.dataset.chatRoomPublicId,
+            participant_token: participantToken
+          },
+          {
+            connected() {
+              stopFallbackSync();
+              syncMessages();
+              syncRoomState();
+            },
+
+            disconnected() {
+              startFallbackSync();
+            },
+
+            rejected() {
+              startFallbackSync();
+            },
+
+            received(data) {
+              if (data.type === "message.created" && data.message) {
+                if (Number(data.message.sequence_number) > lastSeq) appendMessage(data.message);
+                if (data.room?.status) updateComposerState(data.room.status, data.room.expiry_summary, data.room.expires_at);
+              }
+
+              if (data.type === "room.updated" && data.room) {
+                updateComposerState(data.room.status, data.room.expiry_summary, data.room.expires_at);
+              }
+            }
+          }
+        );
+      } else {
+        startFallbackSync();
+      }
+    })();
+  </script>
+<% end %>

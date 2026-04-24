@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  public_id: 
+  session_token_digest: MyString
+  current_nickname: MyString
+  status: 1
+  last_seen_at: 2026-04-23 16:10:17
+  ip_hash: MyString
+  user_agent_hash: MyString
+
+two:
+  public_id: 
+  session_token_digest: MyString
+  current_nickname: MyString
+  status: 1
+  last_seen_at: 2026-04-23 16:10:17
+  ip_hash: MyString
+  user_agent_hash: MyString

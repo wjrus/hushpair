@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  room: one
+  room_participant: one
+  sequence_number: 1
+  body: MyText
+  client_message_uuid: MyString
+  flagged: false
+  flag_reasons: 
+
+two:
+  room: two
+  room_participant: two
+  sequence_number: 1
+  body: MyText
+  client_message_uuid: MyString
+  flagged: false
+  flag_reasons: 

@@ -1,0 +1,125 @@
+<% content_for :title, "Privacy | Hushpair" %>
+
+<main class="shell legal-shell" id="main-content">
+  <section class="card legal-card">
+    <p class="eyebrow">Privacy Policy</p>
+    <h1>Hushpair Privacy Policy</h1>
+    <p class="lede">
+      Effective date: <%= Date.current.strftime("%B %-d, %Y") %>. Hushpair is designed to collect as
+      little information as possible and to retain it for as little time as possible.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Our approach</h2>
+    <p>
+      Hushpair is a minimalist anonymous 1:1 text chat service. We do not require full accounts,
+      we do not ask for profile data, and we do not design the product around advertising,
+      identity graphs, or social tracking.
+    </p>
+    <p>
+      Our default goal is data minimization: if we do not need a piece of information to operate
+      the service safely and reliably, we do not want to collect or keep it.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>What we collect</h2>
+    <p>We try to limit stored data to the following categories:</p>
+    <ul class="legal-list">
+      <li>Ephemeral room and participant records needed to keep a two-person chat working.</li>
+      <li>Encrypted-at-rest chat message content.</li>
+      <li>Encrypted-at-rest nicknames when participants choose to use them.</li>
+      <li>Hashed or otherwise obfuscated network and device diagnostics, such as keyed IP hashes and user-agent hashes.</li>
+      <li>Minimal operational telemetry, such as aggregate counts needed to understand uptime, load, and abuse patterns.</li>
+    </ul>
+  </section>
+
+  <section class="card legal-card">
+    <h2>What we do not want to collect</h2>
+    <ul class="legal-list">
+      <li>Real names, profile biographies, avatars, social graphs, address books, or demographic profiles.</li>
+      <li>Email addresses, phone numbers, or contact handles as part of normal product use.</li>
+      <li>Advertising identifiers or behavioral tracking data for ad targeting.</li>
+      <li>Cleartext IP-address history in our app tables.</li>
+    </ul>
+  </section>
+
+  <section class="card legal-card">
+    <h2>How chat content is protected</h2>
+    <p>
+      Hushpair is built to protect chat content and nicknames at rest. Message bodies and nickname
+      fields are encrypted before they are written to persistent storage.
+    </p>
+    <p>
+      We also filter sensitive request parameters from application logs to reduce the risk of
+      accidental cleartext exposure through debugging or log retention.
+    </p>
+    <p>
+      That said, a live chat service cannot deliver messages without handling plaintext transiently
+      while the service processes and transmits messages to the intended participants. In other
+      words: we aim to avoid storing readable chat content, but real-time delivery still requires
+      temporary in-process handling of message text.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Retention</h2>
+    <p>
+      We intend to keep chat rooms and their associated data only as long as necessary to operate
+      the service, diagnose issues, and respond to abuse or safety incidents.
+    </p>
+    <p>
+      Our operating principle is short retention. Rooms expire automatically. Diagnostics should be
+      minimized. Where possible, we prefer aggregate counts and obfuscated identifiers over raw
+      historical records.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Diagnostics and analytics</h2>
+    <p>
+      We may keep limited operational analytics, including aggregate or obfuscated counts of active
+      usage, so we can maintain the service and later build privacy-preserving analytics graphs.
+    </p>
+    <p>
+      Our intent is to avoid analytics systems that expose who said what, which nickname a person
+      used, or which exact IP address they connected from.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Abuse prevention</h2>
+    <p>
+      We may use limited, privacy-conscious controls such as throttling, hashed network identifiers,
+      and basic content safety checks to reduce spam, harassment, fraud, and attempts to move users
+      off-platform using personal contact details.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Security</h2>
+    <p>
+      We use reasonable technical and organizational safeguards to protect the service. No system is
+      perfectly secure, but we aim to reduce unnecessary collection, encrypt sensitive data at rest,
+      minimize cleartext logging, and limit retained diagnostics.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Children</h2>
+    <p>
+      Hushpair is not intended for children under 13, and we do not knowingly seek to collect
+      personal information from children.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Policy updates</h2>
+    <p>
+      We may update this Privacy Policy as Hushpair evolves. When we make material changes, we will
+      update the effective date on this page and revise the policy text to match how the service
+      actually operates.
+    </p>
+  </section>
+</main>

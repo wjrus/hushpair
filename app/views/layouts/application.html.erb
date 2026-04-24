@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) || "Hushpair" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Hushpair">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= action_cable_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+      <div class="site-header__inner">
+        <%= link_to root_path, class: "brandmark", aria: { label: "Hushpair home" } do %>
+          <%= image_tag "hushpair-logo.svg", alt: "hushpair", class: "brandmark__logo" %>
+        <% end %>
+
+        <button
+          type="button"
+          class="theme-toggle"
+          data-theme-toggle
+          aria-label="Toggle dark mode"
+          aria-pressed="false"
+        >
+          <span class="theme-toggle__track" aria-hidden="true">
+            <span class="theme-toggle__state theme-toggle__state-sun">☀</span>
+            <span class="theme-toggle__state theme-toggle__state-moon">☾</span>
+            <span class="theme-toggle__thumb"></span>
+          </span>
+        </button>
+      </div>
+    </header>
+
+    <% flash.each do |type, message| %>
+      <aside class="flash flash-<%= type %>" role="status" aria-live="polite"><%= message %></aside>
+    <% end %>
+
+    <%= yield %>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <p class="site-footer__brand">
+          <%= image_tag "hushpair-mark.svg", alt: "", aria: { hidden: true }, class: "site-footer__mark" %>
+          <span>hushpair</span>
+        </p>
+        <p class="site-footer__links">
+          <%= link_to "Privacy Policy", privacy_path %>
+          <span aria-hidden="true">·</span>
+          <%= link_to "Terms of Use", terms_path %>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

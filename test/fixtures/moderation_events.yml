@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  room: one
+  room_participant: one
+  anonymous_session: one
+  kind: 1
+  reason: MyString
+  details: 
+
+two:
+  room: two
+  room_participant: two
+  anonymous_session: two
+  kind: 1
+  reason: MyString
+  details: 

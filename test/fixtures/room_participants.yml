@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  room: one
+  anonymous_session: one
+  role: 1
+  nickname: MyString
+  nickname_state: 1
+  joined_at: 2026-04-23 16:10:28
+  left_at: 2026-04-23 16:10:28
+  last_seen_at: 2026-04-23 16:10:28
+  blocked_at: 2026-04-23 16:10:28
+  participant_token_digest: MyString
+
+two:
+  room: two
+  anonymous_session: two
+  role: 1
+  nickname: MyString
+  nickname_state: 1
+  joined_at: 2026-04-23 16:10:28
+  left_at: 2026-04-23 16:10:28
+  last_seen_at: 2026-04-23 16:10:28
+  blocked_at: 2026-04-23 16:10:28
+  participant_token_digest: MyString
