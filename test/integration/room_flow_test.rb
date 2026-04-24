@@ -54,4 +54,26 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_equal 302, creator.response.status
     assert_equal room_url(room_slug), creator.response.location
   end
+
+  test "expired rooms do not restore participant access from return links" do
+    creator = open_session
+    creator.post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json
+    assert_equal 201, creator.response.status
+
+    created = JSON.parse(creator.response.body)
+    room_public_id = created.dig("room", "id")
+    room_slug = created.dig("room", "slug")
+    participant_token = creator.response.headers["X-Participant-Token"]
+
+    room = Room.find_by!(public_id: room_public_id)
+    room.update!(expires_at: 1.minute.ago)
+
+    RoomMaintenanceJob.perform_now(now: Time.current)
+
+    creator.get room_path(room_slug, participant_token: participant_token)
+
+    assert_equal 200, creator.response.status
+    assert_match "Room expired", creator.response.body
+    assert_no_match "data-chat-room-public-id", creator.response.body
+  end
 end

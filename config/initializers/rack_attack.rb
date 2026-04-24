@@ -25,3 +25,16 @@ class Rack::Attack
     [ 429, { "Content-Type" => "text/plain; charset=utf-8" }, [ "Rate limit exceeded" ] ]
   end
 end
+
+ActiveSupport::Notifications.subscribe("throttle.rack_attack") do |_name, _start, _finish, _request_id, payload|
+  request = payload[:request]
+  next unless request
+
+  ip_hash = if request.ip.present?
+    Digest::SHA256.hexdigest("#{Rails.application.secret_key_base}:#{request.ip}")
+  end
+
+  Rails.logger.warn(
+    "[hushpair.throttle] matched=#{payload[:matched]} discriminator=#{payload[:discriminator]} path=#{request.path} ip_hash=#{ip_hash}"
+  )
+end

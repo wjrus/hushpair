@@ -2,6 +2,7 @@ class Room < ApplicationRecord
   WAITING_LIFETIME = 30.minutes
   ACTIVE_LIFETIME = 24.hours
   ACTIVE_LIFETIME_CAP = 30.days
+  CLOSED_RECORD_RETENTION = 24.hours
 
   has_many :room_invitations, dependent: :destroy
   has_many :room_participants, dependent: :destroy
@@ -14,6 +15,9 @@ class Room < ApplicationRecord
   enum :message_retention_mode, { line_count: 0, time_window: 1, forever: 2 }, default: :line_count
 
   before_validation :ensure_public_id, :ensure_slug, on: :create
+
+  scope :open_statuses, -> { where(status: [ :waiting, :active ]) }
+  scope :closed_statuses, -> { where(status: [ :ended, :expired ]) }
 
   validates :public_id, presence: true, uniqueness: true
   validates :slug, presence: true, uniqueness: true
@@ -32,6 +36,29 @@ class Room < ApplicationRecord
 
   def self.active_expiration_from(time)
     time + ACTIVE_LIFETIME
+  end
+
+  def self.closed_purge_cutoff(now: Time.current)
+    now - CLOSED_RECORD_RETENTION
+  end
+
+  def self.expire_due!(now: Time.current)
+    open_statuses.where("expires_at <= ?", now).find_each.filter_map do |room|
+      previous_status = room.status
+      room.expire_if_needed!(now: now)
+      room if previous_status != room.status
+    end
+  end
+
+  def self.purge_closed_before!(cutoff_time)
+    count = 0
+
+    closed_statuses.where("expires_at <= ?", cutoff_time).find_each do |room|
+      room.destroy!
+      count += 1
+    end
+
+    count
   end
 
   def expire_if_needed!(now: Time.current)
@@ -95,12 +122,14 @@ class Room < ApplicationRecord
     end
   end
 
-  def enforce_message_retention!
+  def enforce_message_retention!(now: Time.current)
     case message_retention_mode
     when "line_count"
       trim_to_line_limit!
     when "time_window"
-      trim_to_time_window!
+      trim_to_time_window!(now: now)
+    else
+      0
     end
   end
 
@@ -132,14 +161,14 @@ class Room < ApplicationRecord
 
   def trim_to_line_limit!
     excess_count = messages.count - message_retention_line_limit
-    return unless excess_count.positive?
+    return 0 unless excess_count.positive?
 
     stale_ids = messages.order(:sequence_number).limit(excess_count).pluck(:id)
     messages.where(id: stale_ids).delete_all
   end
 
-  def trim_to_time_window!
-    cutoff = message_retention_hours.hours.ago
+  def trim_to_time_window!(now: Time.current)
+    cutoff = now - message_retention_hours.hours
     messages.where(created_at: ...cutoff).delete_all
   end
 end
