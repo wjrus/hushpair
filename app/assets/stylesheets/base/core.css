@@ -78,6 +78,10 @@ body {
   display: none;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .is-error {
   color: var(--danger);
 }

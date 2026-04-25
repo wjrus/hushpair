@@ -31,6 +31,8 @@ const initRoomChat = (root) => {
   const copyButtons = root.querySelectorAll(".button-copy")
   const chatMenu = root.querySelector("[data-chat-menu]")
   const chatMenuTrigger = root.querySelector("[data-chat-menu-trigger]")
+  const confirmDialog = root.querySelector("[data-chat-confirm-dialog]")
+  const confirmMessage = root.querySelector("[data-chat-confirm-message]")
   const participantToken = root.dataset.chatParticipantToken
   const clientInstanceId = root.dataset.chatClientInstanceId
 
@@ -44,6 +46,7 @@ const initRoomChat = (root) => {
   let fallbackRoomInterval = null
   let presenceInterval = null
   let expiryTimeout = null
+  let pendingConfirmForm = null
   const renderedSequences = new Set(
     Array.from(list.querySelectorAll(".message-row")).map((row) => Number(row.dataset.sequenceNumber)).filter(Number.isFinite)
   )
@@ -325,12 +328,30 @@ const initRoomChat = (root) => {
 
   root.querySelectorAll("form[data-chat-confirm]").forEach((actionForm) => {
     actionForm.addEventListener("submit", (event) => {
+      if (actionForm.dataset.chatConfirmed === "true") {
+        delete actionForm.dataset.chatConfirmed
+        return
+      }
+
       const message = actionForm.dataset.chatConfirm
-      if (!message) return
-      if (window.confirm(message)) return
+      if (!message || !confirmDialog || !confirmMessage) return
 
       event.preventDefault()
+      pendingConfirmForm = actionForm
+      confirmMessage.textContent = message
+      confirmDialog.showModal()
     })
+  })
+
+  confirmDialog?.addEventListener("close", () => {
+    if (confirmDialog.returnValue !== "confirm" || !pendingConfirmForm) {
+      pendingConfirmForm = null
+      return
+    }
+
+    pendingConfirmForm.dataset.chatConfirmed = "true"
+    pendingConfirmForm.requestSubmit()
+    pendingConfirmForm = null
   })
 
   headerLinkText?.addEventListener("focus", () => headerLinkText.select())

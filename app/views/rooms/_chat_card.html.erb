@@ -25,6 +25,17 @@
     room_expiry_summary: room_expiry_summary,
     retention_options: retention_options %>
 
+  <dialog class="chat-confirm-modal" data-chat-confirm-dialog aria-labelledby="chat-confirm-title">
+    <form class="chat-confirm-modal__card" method="dialog">
+      <h2 class="chat-confirm-modal__title" id="chat-confirm-title">Confirm action</h2>
+      <p class="chat-confirm-modal__message" data-chat-confirm-message></p>
+      <div class="chat-confirm-modal__actions">
+        <button class="button button-secondary button-compact" type="submit" value="cancel">Cancel</button>
+        <button class="button button-compact" type="submit" value="confirm" data-chat-confirm-accept>Continue</button>
+      </div>
+    </form>
+  </dialog>
+
   <%= render "transcript", messages: messages, participant: participant %>
   <%= render "composer", chat_open: chat_open %>
 </section>

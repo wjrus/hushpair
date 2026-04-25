@@ -323,6 +323,53 @@
   padding: 0.25rem 0;
 }
 
+.chat-confirm-modal {
+  width: min(24rem, calc(100vw - 2rem));
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.chat-confirm-modal::backdrop {
+  background: rgba(11, 19, 43, 0.46);
+  backdrop-filter: blur(2px);
+}
+
+.chat-confirm-modal__card {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  box-shadow: var(--shadow-strong);
+}
+
+.chat-confirm-modal__title,
+.chat-confirm-modal__message {
+  margin: 0;
+}
+
+.chat-confirm-modal__title {
+  font-size: 1.05rem;
+  line-height: 1.15;
+}
+
+.chat-confirm-modal__message {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.chat-confirm-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
 .message-list {
   list-style: none;
   margin: 0;
