@@ -27,7 +27,6 @@ Rails.application.routes.draw do
         resources :messages, only: [ :index, :create ]
         resource :presence, only: :create, controller: "presence"
         resource :typing, only: :create, controller: "typing"
-        resource :leave, only: :create, controller: "leaves"
         resource :end_chat, only: :create, controller: "end_chats"
         resources :reports, only: :create
       end

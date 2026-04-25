@@ -16,7 +16,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Join chat", guest.response.body
   end
 
-  test "api create join message and end chat flow works" do
+  test "api create join message and terminal room exit flow works" do
     creator = open_session
     creator.post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json
     assert_equal 201, creator.response.status
