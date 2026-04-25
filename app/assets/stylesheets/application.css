@@ -1057,21 +1057,32 @@ textarea.is-scrollable {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  align-items: stretch;
 }
 
 .menu-actions form {
   margin: 0;
+  display: flex;
+  align-items: stretch;
 }
 
 .report-form {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  align-items: center;
+  align-items: stretch;
 }
 
 .report-form select {
   min-width: 8.75rem;
+  width: auto;
+  min-height: 2.12rem;
+  padding-top: 0.48rem;
+  padding-bottom: 0.48rem;
+}
+
+.menu-actions .button-compact {
+  min-height: 2.12rem;
 }
 
 .menu-link {
