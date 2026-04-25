@@ -1,5 +1,5 @@
 <div class="chat-transcript">
-  <ol class="message-list" id="message-list" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Chat messages">
+  <ol class="message-list" data-chat-message-list role="log" aria-live="polite" aria-relevant="additions text" aria-label="Chat messages">
     <% messages.each do |message| %>
       <li class="message-row <%= message.room_participant_id == participant.id ? "message-row-local" : "message-row-remote" %>" data-sequence-number="<%= message.sequence_number %>">
         <div class="message-shell">
@@ -13,7 +13,7 @@
     <% end %>
   </ol>
 
-  <p class="empty-state <%= "is-hidden" if messages.any? %>" id="empty-state">
+  <p class="empty-state <%= "is-hidden" if messages.any? %>" data-chat-empty-state>
     No messages yet. Say hello when you're ready.
   </p>
 </div>

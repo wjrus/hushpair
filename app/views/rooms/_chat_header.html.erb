@@ -1,41 +1,41 @@
 <div class="chat-header">
   <div class="chat-header__main">
     <div class="chat-header__status">
-      <span class="room-pill" id="room-pill" role="status" aria-live="polite"><%= room.status.humanize %></span>
+      <span class="room-pill" data-chat-room-pill role="status" aria-live="polite"><%= room.status.humanize %></span>
       <span class="chat-header__identity"><%= participant.nickname.presence || "Anonymous" %></span>
     </div>
     <div class="chat-header__link-slot">
       <% if share_invite_url.present? %>
         <div
           class="chat-header__link-bar"
-          id="chat-header-link-chip"
+          data-chat-header-link
           data-copy-value="<%= share_invite_url %>"
           data-share-url="<%= share_invite_url %>"
           data-bookmark-url="<%= participant_return_url %>"
           data-waiting-label="Share link"
           data-active-label="Bookmark"
         >
-          <span class="chat-header__link-label" id="chat-header-link-label">Share link</span>
-          <input class="chat-header__link-input" id="chat-header-link-text" type="text" readonly value="<%= share_invite_url %>" aria-label="Share link" />
+          <span class="chat-header__link-label" data-chat-header-link-label>Share link</span>
+          <input class="chat-header__link-input" data-chat-header-link-text type="text" readonly value="<%= share_invite_url %>" aria-label="Share link" />
           <button class="button button-secondary button-copy" type="button">Copy</button>
         </div>
       <% elsif participant_return_url.present? %>
         <div
           class="chat-header__link-bar"
-          id="chat-header-link-chip"
+          data-chat-header-link
           data-copy-value="<%= participant_return_url %>"
           data-bookmark-url="<%= participant_return_url %>"
           data-active-label="Bookmark"
         >
-          <span class="chat-header__link-label" id="chat-header-link-label">Bookmark</span>
-          <input class="chat-header__link-input" id="chat-header-link-text" type="text" readonly value="<%= participant_return_url %>" aria-label="Bookmark link" />
+          <span class="chat-header__link-label" data-chat-header-link-label>Bookmark</span>
+          <input class="chat-header__link-input" data-chat-header-link-text type="text" readonly value="<%= participant_return_url %>" aria-label="Bookmark link" />
           <button class="button button-secondary button-copy" type="button">Copy</button>
         </div>
       <% end %>
     </div>
   </div>
-  <details class="chat-menu">
-    <summary class="chat-menu__trigger" aria-label="Open chat settings">
+  <details class="chat-menu" data-chat-menu>
+    <summary class="chat-menu__trigger" data-chat-menu-trigger aria-label="Open chat settings">
       <span></span>
       <span></span>
       <span></span>
@@ -58,7 +58,7 @@
 
           <% if participant.creator? %>
             <%= form_with url: retention_room_path(room), method: :patch, class: "toolbar-retention-form" do |form| %>
-              <%= form.select :message_retention_mode, options_for_select(retention_options, room.message_retention_mode), {}, class: "select-input toolbar-input", id: "retention-mode-select" %>
+              <%= form.select :message_retention_mode, options_for_select(retention_options, room.message_retention_mode), {}, class: "select-input toolbar-input", data: { chat_retention_mode_select: true } %>
               <div class="retention-inline-group retention-detail-group" data-retention-detail="line_count">
                 <%= form.number_field :message_retention_line_limit, min: 10, max: 10000, step: 10, class: "toolbar-input toolbar-input-small", placeholder: "250" %>
                 <span class="toolbar-unit">messages</span>
@@ -87,7 +87,7 @@
             <span class="help-popover">Waiting rooms expire after 30 minutes. Once both people join, active rooms last 24 hours and extend when new messages are sent, up to 30 days from creation.</span>
           </span>
         </span>
-        <span class="settings-pill" id="room-expiry-summary"><%= room_expiry_summary %></span>
+        <span class="settings-pill" data-chat-room-expiry-summary><%= room_expiry_summary %></span>
       </div>
 
       <div class="toolbar-group toolbar-group-actions">

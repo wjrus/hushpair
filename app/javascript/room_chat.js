@@ -14,25 +14,27 @@ const initRoomChat = (root) => {
   const messagesUrl = root.dataset.chatMessagesUrl
   const roomShowUrl = root.dataset.chatRoomShowUrl
   const presenceUrl = root.dataset.chatPresenceUrl
-  const list = document.getElementById("message-list")
-  const form = document.getElementById("chat-form")
-  const bodyInput = document.getElementById("chat-body")
-  const feedback = document.getElementById("chat-feedback")
-  const emptyState = document.getElementById("empty-state")
-  const roomPill = document.getElementById("room-pill")
-  const roomExpirySummary = document.getElementById("room-expiry-summary")
-  const headerLinkChip = document.getElementById("chat-header-link-chip")
-  const headerLinkLabel = document.getElementById("chat-header-link-label")
-  const headerLinkText = document.getElementById("chat-header-link-text")
+  const list = root.querySelector("[data-chat-message-list]")
+  const form = root.querySelector("[data-chat-form]")
+  const bodyInput = root.querySelector("[data-chat-body]")
+  const feedback = root.querySelector("[data-chat-feedback]")
+  const emptyState = root.querySelector("[data-chat-empty-state]")
+  const roomPill = root.querySelector("[data-chat-room-pill]")
+  const roomExpirySummary = root.querySelector("[data-chat-room-expiry-summary]")
+  const headerLinkChip = root.querySelector("[data-chat-header-link]")
+  const headerLinkLabel = root.querySelector("[data-chat-header-link-label]")
+  const headerLinkText = root.querySelector("[data-chat-header-link-text]")
   const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
   const localParticipantId = Number(root.dataset.chatParticipantId)
-  const sendButton = form.querySelector("button")
-  const retentionModeSelect = document.getElementById("retention-mode-select")
-  const copyButtons = document.querySelectorAll(".button-copy")
-  const chatMenu = document.querySelector(".chat-menu")
-  const chatMenuTrigger = document.querySelector(".chat-menu__trigger")
+  const sendButton = form?.querySelector("button")
+  const retentionModeSelect = root.querySelector("[data-chat-retention-mode-select]")
+  const copyButtons = root.querySelectorAll(".button-copy")
+  const chatMenu = root.querySelector("[data-chat-menu]")
+  const chatMenuTrigger = root.querySelector("[data-chat-menu-trigger]")
   const participantToken = root.dataset.chatParticipantToken
   const clientInstanceId = root.dataset.chatClientInstanceId
+
+  if (!list || !form || !bodyInput || !sendButton || !emptyState) return
 
   let lastSeq = Number(root.dataset.chatLastSeq || 0)
   let expiresAt = root.dataset.chatRoomExpiresAt
@@ -154,7 +156,7 @@ const initRoomChat = (root) => {
   const syncRetentionFields = () => {
     if (!retentionModeSelect) return
 
-    document.querySelectorAll("[data-retention-detail]").forEach((element) => {
+    root.querySelectorAll("[data-retention-detail]").forEach((element) => {
       element.classList.toggle("is-hidden", element.dataset.retentionDetail !== retentionModeSelect.value)
     })
   }
