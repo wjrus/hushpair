@@ -1,5 +1,11 @@
 module Admin
   class DashboardMetrics
+    DEFAULT_PRESET = "7d"
+    MODERATION_KINDS = [
+      ModerationEvent.kinds[:report_submitted],
+      ModerationEvent.kinds[:rate_limited]
+    ].freeze
+
     PRESETS = {
       "24h" => "Last 24 hours",
       "7d" => "Last 7 days",
@@ -41,15 +47,15 @@ module Admin
 
     def summary_cards
       [
-        { label: "Rooms created", value: Room.where(created_at: range_window).count, tone: "primary" },
-        { label: "Messages sent", value: Message.where(created_at: range_window).count, tone: "accent" },
-        { label: "Participants joined", value: RoomParticipant.where(joined_at: range_window).count, tone: "default" },
-        { label: "Reports filed", value: ModerationEvent.report_submitted.where(created_at: range_window).count, tone: "danger" }
+        count_card("Rooms created", Room, column: :created_at, tone: "primary"),
+        count_card("Messages sent", Message, column: :created_at, tone: "accent"),
+        count_card("Participants joined", RoomParticipant, column: :joined_at, tone: "default"),
+        moderation_count_card("Reports filed", ModerationEvent.report_submitted, tone: "danger")
       ]
     end
 
     def active_room_snapshot
-      {
+      @active_room_snapshot ||= {
         waiting: Room.waiting.where("expires_at > ?", @now).count,
         active: Room.active.where("expires_at > ?", @now).count
       }
@@ -59,40 +65,25 @@ module Admin
       snapshot = active_room_snapshot
 
       [
-        { label: "Open rooms now", value: snapshot.values.sum, tone: "primary" },
-        { label: "Waiting now", value: snapshot[:waiting], tone: "default" },
-        { label: "Active now", value: snapshot[:active], tone: "accent" },
-        { label: "Rooms ended today", value: Room.where(ended_at: @now.beginning_of_day..@now).count, tone: "default" }
+        static_card("Open rooms now", snapshot.values.sum, tone: "primary"),
+        static_card("Waiting now", snapshot[:waiting], tone: "default"),
+        static_card("Active now", snapshot[:active], tone: "accent"),
+        static_card("Rooms ended today", Room.where(ended_at: @now.beginning_of_day..@now).count, tone: "default")
       ]
     end
 
     def charts
       [
-        {
-          title: "Room creation rate",
-          subtitle: "New rooms opened during #{range_label.downcase}",
-          series: series_for(Room, column: :created_at),
-          tone: "primary"
-        },
-        {
-          title: "Message volume",
-          subtitle: "Messages sent during #{range_label.downcase}",
-          series: series_for(Message, column: :created_at),
-          tone: "accent"
-        },
-        {
-          title: "Moderation activity",
-          subtitle: "Reports and rate-limits during #{range_label.downcase}",
-          series: moderation_series,
-          tone: "danger"
-        }
+        chart("Room creation rate", "New rooms opened", Room, column: :created_at, tone: "primary"),
+        chart("Message volume", "Messages sent", Message, column: :created_at, tone: "accent"),
+        moderation_chart
       ]
     end
 
     private
 
     def resolve_range(preset:, start_date:, end_date:)
-      key = preset.presence_in(PRESETS.keys) || "7d"
+      key = preset.presence_in(PRESETS.keys) || DEFAULT_PRESET
       return custom_range(start_date:, end_date:) if start_date.present? || end_date.present?
 
       case key
@@ -108,7 +99,7 @@ module Admin
       when "ytd"
         [ key, @now.beginning_of_year, @now ]
       else
-        [ key, @now - 7.days, @now ]
+        default_range
       end
     end
 
@@ -117,33 +108,68 @@ module Admin
       custom_end = end_date.present? ? Time.zone.parse(end_date.to_s).end_of_day : @now.end_of_day
       [ "custom", [ custom_start, custom_end ].min, [ custom_start, custom_end ].max ]
     rescue ArgumentError, TypeError
-      [ "7d", @now - 7.days, @now ]
+      default_range
     end
 
     def range_window
-      start_at..end_at
+      @range_window ||= start_at..end_at
     end
 
     def bucket_unit
-      end_at - start_at <= 3.days ? "hour" : "day"
+      @bucket_unit ||= end_at - start_at <= 3.days ? "hour" : "day"
     end
 
     def series_for(model, column:)
-      bucket_expression = "DATE_TRUNC('#{bucket_unit}', #{column})"
-      raw_counts = model.where(column => range_window).group(Arel.sql(bucket_expression)).order(Arel.sql(bucket_expression)).count
-
-      build_series(raw_counts.transform_keys { |key| key.in_time_zone })
+      build_series(bucketed_counts(model.where(column => range_window), column:))
     end
 
     def moderation_series
-      bucket_expression = "DATE_TRUNC('#{bucket_unit}', created_at)"
-      raw_counts = ModerationEvent.where(created_at: range_window)
-        .where(kind: [ ModerationEvent.kinds[:report_submitted], ModerationEvent.kinds[:rate_limited] ])
-        .group(Arel.sql(bucket_expression))
-        .order(Arel.sql(bucket_expression))
-        .count
+      build_series(bucketed_counts(ModerationEvent.where(created_at: range_window).where(kind: MODERATION_KINDS), column: :created_at))
+    end
 
-      build_series(raw_counts.transform_keys { |key| key.in_time_zone })
+    def count_card(label, model, column:, tone:)
+      static_card(label, model.where(column => range_window).count, tone:)
+    end
+
+    def moderation_count_card(label, scope, tone:)
+      static_card(label, scope.where(created_at: range_window).count, tone:)
+    end
+
+    def static_card(label, value, tone:)
+      { label:, value:, tone: }
+    end
+
+    def chart(title, subtitle_prefix, model, column:, tone:)
+      {
+        title:,
+        subtitle: "#{subtitle_prefix} during #{range_label.downcase}",
+        series: series_for(model, column:),
+        tone:
+      }
+    end
+
+    def moderation_chart
+      {
+        title: "Moderation activity",
+        subtitle: "Reports and rate-limits during #{range_label.downcase}",
+        series: moderation_series,
+        tone: "danger"
+      }
+    end
+
+    def bucketed_counts(scope, column:)
+      scope.group(Arel.sql(bucket_expression(column)))
+        .order(Arel.sql(bucket_expression(column)))
+        .count
+        .transform_keys { |key| key.in_time_zone }
+    end
+
+    def bucket_expression(column)
+      "DATE_TRUNC('#{bucket_unit}', #{column})"
+    end
+
+    def default_range
+      [ DEFAULT_PRESET, @now - 7.days, @now ]
     end
 
     def build_series(raw_counts)
