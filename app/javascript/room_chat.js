@@ -250,7 +250,6 @@ const initRoomChat = (root) => {
 
     isSending = true
     sendButton.disabled = true
-    setFeedback("Sending...")
 
     try {
       const response = await fetch(messagesUrl, {
