@@ -1066,6 +1066,30 @@ textarea.is-scrollable {
   align-items: stretch;
 }
 
+.report-disclosure {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.report-disclosure[open] {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--panel) 97%, transparent);
+  padding: 0.35rem;
+}
+
+.report-disclosure__summary {
+  list-style: none;
+}
+
+.report-disclosure__summary::-webkit-details-marker {
+  display: none;
+}
+
+.report-disclosure[open] .report-disclosure__summary {
+  margin-right: 0.35rem;
+}
+
 .report-form {
   display: inline-flex;
   flex-wrap: wrap;
