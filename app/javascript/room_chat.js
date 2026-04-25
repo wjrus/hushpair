@@ -157,7 +157,7 @@ const initRoomChat = (root) => {
     if (!retentionModeSelect) return
 
     root.querySelectorAll("[data-retention-detail]").forEach((element) => {
-      element.classList.toggle("is-hidden", element.dataset.retentionDetail !== retentionModeSelect.value)
+      element.hidden = element.dataset.retentionDetail !== retentionModeSelect.value
     })
   }
 
