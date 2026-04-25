@@ -104,7 +104,7 @@
                 ["Self-harm", "self-harm"],
                 ["Other", "other"]
               ]), class: "toolbar-input toolbar-input-small" %>
-              <%= submit_tag "Report and end", class: "button button-secondary button-compact" %>
+              <%= submit_tag "Report and End", class: "button button-secondary button-compact" %>
             <% end %>
           </details>
           <%= form_with url: leave_room_path(room), method: :post, data: { chat_confirm: "End this chat for both people?" } do %>
