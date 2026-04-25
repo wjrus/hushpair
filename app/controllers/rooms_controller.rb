@@ -122,7 +122,13 @@ class RoomsController < ApplicationController
     @room.leave!(participant:)
     forget_room_participant!(room: @room)
 
-    redirect_to root_path, notice: "You left the chat."
+    RoomChannel.broadcast_to(@room, type: "room.updated", room: {
+      status: @room.status,
+      expires_at: @room.expires_at&.iso8601,
+      expiry_summary: @room.expiry_summary
+    })
+
+    redirect_to root_path, notice: "Chat ended."
   end
 
   def end_chat
@@ -162,7 +168,13 @@ class RoomsController < ApplicationController
     @room.leave!(participant:)
     forget_room_participant!(room: @room)
 
-    redirect_to root_path, notice: "Thanks. The chat was reported and closed for you."
+    RoomChannel.broadcast_to(@room, type: "room.updated", room: {
+      status: @room.status,
+      expires_at: @room.expires_at&.iso8601,
+      expiry_summary: @room.expiry_summary
+    })
+
+    redirect_to root_path, notice: "Thanks. The chat was reported and ended."
   end
 
   private

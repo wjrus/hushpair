@@ -3,7 +3,8 @@ class Api::V1::LeavesController < Api::V1::BaseController
 
   def create
     current_room.leave!(participant: current_room_participant)
+    RoomChannel.broadcast_to(current_room, type: "room.updated", room: room_payload(current_room))
 
-    render json: { left: true }, status: :created
+    render json: { room: room_payload(current_room) }, status: :created
   end
 end

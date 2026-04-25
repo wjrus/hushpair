@@ -75,7 +75,7 @@ class Room < ApplicationRecord
   end
 
   def leave!(participant:, at: Time.current)
-    participant.update!(left_at: at, last_seen_at: at)
+    end_chat!(participant:, reason: "ended_by_participant_left", at:)
   end
 
   def end_chat!(participant:, reason: "ended_by_participant", at: Time.current)

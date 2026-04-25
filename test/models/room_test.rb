@@ -16,7 +16,7 @@ class RoomTest < ActiveSupport::TestCase
     assert_in_delta room.created_at + 30.days, room.reload.expires_at, 1.second
   end
 
-  test "leave marks the participant as left without closing the room" do
+  test "leave closes the room immediately" do
     room = Room.create!(
       expires_at: 1.day.from_now,
       last_message_at: Time.current,
@@ -36,7 +36,8 @@ class RoomTest < ActiveSupport::TestCase
     room.leave!(participant:)
 
     assert participant.reload.left_at.present?
-    assert room.reload.active?
+    assert room.reload.ended?
+    assert_not room.accessible?
   end
 
   test "end_chat closes the room immediately" do

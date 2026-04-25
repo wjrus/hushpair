@@ -169,14 +169,10 @@
                       ["Self-harm", "self-harm"],
                       ["Other", "other"]
                     ]), class: "toolbar-input toolbar-input-small" %>
-                    <%= submit_tag "Report and leave", class: "button button-secondary button-compact" %>
+                    <%= submit_tag "Report and end", class: "button button-secondary button-compact" %>
                   <% end %>
                 </details>
                 <%= form_with url: leave_room_path(@room), method: :post do %>
-                  <%= hidden_field_tag :participant_token, @participant_return_token if @participant_return_token.present? %>
-                  <%= submit_tag "Leave chat", class: "button button-secondary button-compact" %>
-                <% end %>
-                <%= form_with url: end_chat_room_path(@room), method: :post do %>
                   <%= hidden_field_tag :participant_token, @participant_return_token if @participant_return_token.present? %>
                   <%= submit_tag "End chat", class: "button button-secondary button-compact" %>
                 <% end %>
