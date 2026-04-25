@@ -3,28 +3,13 @@ class RoomsController < ApplicationController
 
   def show
     @room.expire_if_needed!
-    @participant = restore_participant_from_params || current_room_participant_for(@room)
-    @invitation = invite_token_present? ? @room.room_invitations.find_by(token_digest: TokenDigest.hexdigest(params[:invite_token])) : nil
-    remember_room_invitation!(room: @room, raw_token: params[:invite_token]) if @participant&.creator? && @invitation.present?
-    @joinable = @participant.blank? && @invitation.present? && @room.waiting? && @room.accessible? && @invitation.revoked_at.blank? && @invitation.expires_at&.future?
-    @invite_preview = @joinable
-    @messages = @participant.present? ? @room.messages.includes(:room_participant).order(:sequence_number) : Message.none
-    @chat_open = @participant.present? && @room.accessible?
-    @participant_return_token = @participant.present? ? participant_return_token_for(@room) : nil
-    @participant_return_url = @participant.present? ? room_url(@room, participant_token: @participant_return_token) : nil
-    @share_invite_url = share_invite_url_for(@room, @participant)
-    @retention_options = retention_mode_options
-    @room_expiry_summary = @room.expiry_summary
-    @creator_display_name = @room.room_participants.creator.first&.nickname.presence || "Anonymous"
-    @room_display_name = @room.slug.tr("-", " ")
-    @presence_conflict = flash.now[:alert] == "This bookmark is already open in another browser."
-    @bookmark_restricted = flash.now[:alert] == "This bookmark only works in the browser that joined this room."
+    load_room_view_state!
   end
 
   def create
     session = current_or_create_anonymous_session!(nickname: params[:nickname])
-    invite_token = TokenDigest.generate(24)
     participant_token = TokenDigest.generate
+    invite_token = TokenDigest.generate(24)
 
     room = Room.create!(
       expires_at: Room.waiting_expiration_from(Time.current),
@@ -44,12 +29,7 @@ class RoomsController < ApplicationController
       role: :creator
     )
 
-    room.room_invitations.create!(
-      expires_at: room.expires_at,
-      token_digest: TokenDigest.hexdigest(invite_token),
-      usage_limit: 1
-    )
-
+    create_room_invitation!(room:, invite_token:)
     remember_room_participant!(room:, raw_token: participant_token)
     remember_room_invitation!(room:, raw_token: invite_token)
 
@@ -57,54 +37,27 @@ class RoomsController < ApplicationController
   end
 
   def join
-    invitation = @room.room_invitations.find_by!(token_digest: TokenDigest.hexdigest(params[:invite_token]))
+    invitation = find_join_invitation!
     session = current_or_create_anonymous_session!(nickname: params[:nickname])
 
     @room.expire_if_needed!
 
-    if invitation.revoked_at.present? || invitation.expires_at&.past? || !@room.accessible?
-      redirect_to room_path(@room.slug), alert: "That invitation has expired."
-      return
-    end
+    return redirect_with_alert("That invitation has expired.") if invitation_invalid?(invitation)
+    return redirect_with_alert("That chat already has two participants.") if room_full?
 
-    if @room.room_participants.count >= @room.max_participants
-      redirect_to room_path(@room.slug), alert: "That chat already has two participants."
-      return
-    end
-
-    existing_participant = @room.room_participants.find_by(anonymous_session: session)
     participant_token = TokenDigest.generate
-
-    participant = if existing_participant
-      existing_participant.update!(participant_token_digest: TokenDigest.hexdigest(participant_token))
-      existing_participant
-    else
-      @room.room_participants.create!(
-        anonymous_session: session,
-        joined_at: Time.current,
-        last_seen_at: Time.current,
-        nickname: params[:nickname].presence,
-        nickname_state: params[:nickname].present? ? :accepted : :pending_review,
-        participant_token_digest: TokenDigest.hexdigest(participant_token),
-        role: :guest
-      )
-    end
+    participant = join_participant_for(session:, participant_token:)
 
     remember_room_participant!(room: @room, raw_token: participant_token)
-
-    invitation.update!(used_at: Time.current, revoked_at: Time.current)
-    @room.activate! if @room.room_participants.count == @room.max_participants
+    consume_invitation!(invitation)
+    activate_room_if_full!
 
     redirect_to room_path(@room.slug)
   end
 
   def update_retention
-    participant = restore_participant_from_params || current_room_participant_for(@room)
-
-    unless participant&.creator?
-      redirect_to room_path(@room.slug), alert: "Only the chat creator can change message retention."
-      return
-    end
+    participant = current_room_participant
+    return redirect_with_alert("Only the chat creator can change message retention.") unless participant&.creator?
 
     @room.update!(retention_params)
     @room.enforce_message_retention!
@@ -113,39 +66,18 @@ class RoomsController < ApplicationController
   end
 
   def leave
-    participant = restore_participant_from_params || current_room_participant_for(@room)
-    unless participant.present?
-      redirect_to room_path(@room.slug), alert: "You are not currently in this chat."
-      return
-    end
+    participant = current_room_participant
+    return redirect_with_alert("You are not currently in this chat.") unless participant.present?
 
-    @room.leave!(participant:)
-    forget_room_participant!(room: @room)
-    broadcast_room_update!(@room)
-
-    redirect_to root_path, notice: "Chat ended."
+    end_room_from(participant:, notice: "Chat ended.")
   end
 
   def report
-    participant = restore_participant_from_params || current_room_participant_for(@room)
-    unless participant.present?
-      redirect_to room_path(@room.slug), alert: "You are not currently in this chat."
-      return
-    end
+    participant = current_room_participant
+    return redirect_with_alert("You are not currently in this chat.") unless participant.present?
 
-    @room.moderation_events.create!(
-      anonymous_session: current_anonymous_session || participant.anonymous_session,
-      details: {},
-      kind: :report_submitted,
-      reason: report_reason,
-      room_participant: participant
-    )
-
-    @room.leave!(participant:)
-    forget_room_participant!(room: @room)
-    broadcast_room_update!(@room)
-
-    redirect_to root_path, notice: "Thanks. The chat was reported and ended."
+    create_report_for!(participant)
+    end_room_from(participant:, notice: "Thanks. The chat was reported and ended.")
   end
 
   private
@@ -153,6 +85,100 @@ class RoomsController < ApplicationController
   def set_room
     @room = Room.find_by!(slug: params[:slug])
     @room.expire_if_needed!
+  end
+
+  def load_room_view_state!
+    @participant = current_room_participant
+    @invitation = current_room_invitation
+    remember_room_invitation!(room: @room, raw_token: params[:invite_token]) if @participant&.creator? && @invitation.present?
+    @joinable = joinable_invitation?
+    @invite_preview = @joinable
+    @messages = @participant.present? ? ordered_room_messages : Message.none
+    @chat_open = @participant.present? && @room.accessible?
+    @participant_return_token = @participant.present? ? participant_return_token_for(@room) : nil
+    @participant_return_url = @participant.present? ? room_url(@room, participant_token: @participant_return_token) : nil
+    @share_invite_url = share_invite_url_for(@room, @participant)
+    @retention_options = retention_mode_options
+    @room_expiry_summary = @room.expiry_summary
+    @creator_display_name = @room.room_participants.creator.first&.nickname.presence || "Anonymous"
+    @room_display_name = @room.slug.tr("-", " ")
+    @presence_conflict = flash.now[:alert] == "This bookmark is already open in another browser."
+    @bookmark_restricted = flash.now[:alert] == "This bookmark only works in the browser that joined this room."
+  end
+
+  def current_room_participant
+    @current_room_participant ||= restore_participant_from_params || current_room_participant_for(@room)
+  end
+
+  def current_room_invitation
+    return unless invite_token_present?
+
+    @room.room_invitations.find_by(token_digest: TokenDigest.hexdigest(params[:invite_token]))
+  end
+
+  def joinable_invitation?
+    @participant.blank? &&
+      @invitation.present? &&
+      @room.waiting? &&
+      @room.accessible? &&
+      @invitation.revoked_at.blank? &&
+      @invitation.expires_at&.future?
+  end
+
+  def ordered_room_messages
+    @room.messages.includes(:room_participant).order(:sequence_number)
+  end
+
+  def create_room_invitation!(room:, invite_token:)
+    room.room_invitations.create!(
+      expires_at: room.expires_at,
+      token_digest: TokenDigest.hexdigest(invite_token),
+      usage_limit: 1
+    )
+  end
+
+  def find_join_invitation!
+    @room.room_invitations.find_by!(token_digest: TokenDigest.hexdigest(params[:invite_token]))
+  end
+
+  def invitation_invalid?(invitation)
+    invitation.revoked_at.present? || invitation.expires_at&.past? || !@room.accessible?
+  end
+
+  def room_full?
+    @room.room_participants.count >= @room.max_participants
+  end
+
+  def join_participant_for(session:, participant_token:)
+    existing_participant = @room.room_participants.find_by(anonymous_session: session)
+    return rotate_participant_token!(existing_participant, participant_token) if existing_participant
+
+    @room.room_participants.create!(
+      anonymous_session: session,
+      joined_at: Time.current,
+      last_seen_at: Time.current,
+      nickname: params[:nickname].presence,
+      nickname_state: params[:nickname].present? ? :accepted : :pending_review,
+      participant_token_digest: TokenDigest.hexdigest(participant_token),
+      role: :guest
+    )
+  end
+
+  def rotate_participant_token!(participant, raw_token)
+    participant.update!(participant_token_digest: TokenDigest.hexdigest(raw_token))
+    participant
+  end
+
+  def consume_invitation!(invitation)
+    invitation.update!(used_at: Time.current, revoked_at: Time.current)
+  end
+
+  def activate_room_if_full!
+    @room.activate! if @room.room_participants.count == @room.max_participants
+  end
+
+  def redirect_with_alert(message)
+    redirect_to room_path(@room.slug), alert: message
   end
 
   def restore_participant_from_params
@@ -238,6 +264,24 @@ class RoomsController < ApplicationController
   def report_reason
     reason = params[:reason].presence_in(%w[harassment spam hate self-harm other])
     reason || "other"
+  end
+
+  def create_report_for!(participant)
+    @room.moderation_events.create!(
+      anonymous_session: current_anonymous_session || participant.anonymous_session,
+      details: {},
+      kind: :report_submitted,
+      reason: report_reason,
+      room_participant: participant
+    )
+  end
+
+  def end_room_from(participant:, notice:)
+    @room.leave!(participant:)
+    forget_room_participant!(room: @room)
+    broadcast_room_update!(@room)
+
+    redirect_to root_path, notice: notice
   end
 
   def broadcast_room_update!(room)
