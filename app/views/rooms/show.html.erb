@@ -66,8 +66,8 @@
           </div>
           <div class="chat-header__link-slot">
             <% if @share_invite_url.present? %>
-              <span
-                class="link-chip chat-header__link-chip"
+              <div
+                class="chat-header__link-bar"
                 id="chat-header-link-chip"
                 data-copy-value="<%= @share_invite_url %>"
                 data-share-url="<%= @share_invite_url %>"
@@ -76,21 +76,21 @@
                 data-active-label="Bookmark"
               >
                 <span class="chat-header__link-label" id="chat-header-link-label">Share link</span>
-                <span class="link-chip__text" id="chat-header-link-text"><%= @share_invite_url %></span>
+                <input class="chat-header__link-input" id="chat-header-link-text" type="text" readonly value="<%= @share_invite_url %>" aria-label="Share link" />
                 <button class="button button-secondary button-copy" type="button">Copy</button>
-              </span>
+              </div>
             <% elsif @participant_return_url.present? %>
-              <span
-                class="link-chip chat-header__link-chip"
+              <div
+                class="chat-header__link-bar"
                 id="chat-header-link-chip"
                 data-copy-value="<%= @participant_return_url %>"
                 data-bookmark-url="<%= @participant_return_url %>"
                 data-active-label="Bookmark"
               >
                 <span class="chat-header__link-label" id="chat-header-link-label">Bookmark</span>
-                <span class="link-chip__text" id="chat-header-link-text"><%= @participant_return_url %></span>
+                <input class="chat-header__link-input" id="chat-header-link-text" type="text" readonly value="<%= @participant_return_url %>" aria-label="Bookmark link" />
                 <button class="button button-secondary button-copy" type="button">Copy</button>
-              </span>
+              </div>
             <% end %>
           </div>
         </div>
@@ -350,7 +350,8 @@
 
         headerLinkChip.classList.remove("is-hidden");
         headerLinkChip.dataset.copyValue = nextUrl;
-        headerLinkText.textContent = nextUrl;
+        headerLinkText.value = nextUrl;
+        headerLinkText.setAttribute("aria-label", nextLabel);
         headerLinkLabel.textContent = nextLabel;
       };
 
@@ -528,6 +529,8 @@
           }
         });
       });
+      headerLinkText?.addEventListener("focus", () => headerLinkText.select());
+      headerLinkText?.addEventListener("click", () => headerLinkText.select());
 
       list.scrollTop = list.scrollHeight;
       autosizeComposer();
