@@ -83,6 +83,10 @@
   min-width: 0;
 }
 
+.retention-detail-group.is-hidden {
+  display: none;
+}
+
 .toolbar-unit {
   font-size: 0.88rem;
   color: var(--muted);
