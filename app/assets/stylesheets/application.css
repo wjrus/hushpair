@@ -1057,18 +1057,19 @@ textarea.is-scrollable {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .menu-actions form {
   margin: 0;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .report-disclosure {
   display: inline-flex;
-  align-items: stretch;
+  align-items: flex-start;
+  align-self: flex-start;
 }
 
 .report-disclosure[open] {
@@ -1094,15 +1095,16 @@ textarea.is-scrollable {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  align-items: stretch;
+  align-items: flex-start;
 }
 
 .report-form select {
   min-width: 8.75rem;
   width: auto;
+  height: 2.12rem;
   min-height: 2.12rem;
-  padding-top: 0.48rem;
-  padding-bottom: 0.48rem;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .menu-actions .button-compact {
