@@ -50,7 +50,10 @@
     </header>
 
     <% flash.each do |type, message| %>
-      <aside class="flash flash-<%= type %>" role="status" aria-live="polite"><%= message %></aside>
+      <aside class="flash flash-<%= type %>" role="status" aria-live="polite" data-flash>
+        <span class="flash__message"><%= message %></span>
+        <button type="button" class="flash__dismiss" aria-label="Dismiss message" data-flash-dismiss>×</button>
+      </aside>
     <% end %>
 
     <%= yield %>

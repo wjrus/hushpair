@@ -24,6 +24,7 @@ const preferredTheme = () => {
 }
 
 let themeToggleInstalled = false
+let flashDismissInstalled = false
 
 const installThemeToggle = () => {
   applyTheme(preferredTheme())
@@ -39,8 +40,22 @@ const installThemeToggle = () => {
   themeToggleInstalled = true
 }
 
+const installFlashDismiss = () => {
+  if (flashDismissInstalled) return
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-flash-dismiss]")
+    if (!button) return
+
+    button.closest("[data-flash]")?.remove()
+  })
+
+  flashDismissInstalled = true
+}
+
 const installAppUi = () => {
   installThemeToggle()
+  installFlashDismiss()
   installRoomChat()
 }
 

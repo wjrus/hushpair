@@ -126,6 +126,29 @@
   border: 1px solid var(--line);
   border-radius: 4px;
   background: color-mix(in srgb, var(--panel) 97%, transparent);
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.flash__message {
+  min-width: 0;
+}
+
+.flash__dismiss {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.flash__dismiss:hover {
+  color: var(--ink);
 }
 
 .site-footer {
