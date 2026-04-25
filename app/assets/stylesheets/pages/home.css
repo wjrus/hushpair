@@ -1,0 +1,82 @@
+.hero {
+  max-width: 42rem;
+  margin-bottom: 2rem;
+}
+
+.hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.15rem, 2.2vw, 1.9rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.home-room-list {
+  margin-top: 1rem;
+}
+
+.home-room-list__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.home-room-list__header h2,
+.home-room-list__header p,
+.home-room-list__name,
+.home-room-list__meta {
+  margin: 0;
+}
+
+.home-room-list__header p,
+.home-room-list__meta {
+  color: var(--muted);
+}
+
+.home-room-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.home-room-list__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.home-room-list__item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.home-room-list__name {
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.home-room-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .home-room-list__item {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}

@@ -1,0 +1,21 @@
+.legal-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.legal-card {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.legal-card h2,
+.legal-card p {
+  margin: 0;
+}
+
+.legal-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.45rem;
+}

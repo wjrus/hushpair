@@ -1,0 +1,88 @@
+label {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--input-bg);
+}
+
+input[type="text"] {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.58rem 0.7rem;
+}
+
+input[type="number"],
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.58rem 0.7rem;
+}
+
+textarea {
+  width: 100%;
+  min-height: 2.3rem;
+  max-height: 7rem;
+  resize: none;
+  overflow-y: hidden;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.55rem 0.65rem;
+  line-height: 1.35;
+}
+
+textarea.is-scrollable {
+  overflow-y: auto;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 4px;
+  padding: 0.56rem 0.8rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.button-secondary {
+  background: var(--panel-soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.button-subtle {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.button:hover,
+.button:focus-visible {
+  filter: brightness(1.02);
+}
+
+.button-secondary:hover,
+.button-secondary:focus-visible,
+.button-subtle:hover,
+.button-subtle:focus-visible {
+  background: color-mix(in srgb, var(--panel-soft) 68%, var(--accent-soft));
+}
+
+.button-compact {
+  padding: 0.48rem 0.62rem;
+  font-size: 0.82rem;
+}
