@@ -4,6 +4,7 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
   test "builds aggregate counts and live room snapshot" do
     now = Time.zone.parse("2026-04-25 12:00:00")
     waiting_room = Room.create!(
+      created_at: now - 2.hours,
       expires_at: now + 20.minutes,
       last_message_at: now,
       max_participants: 2,
@@ -11,6 +12,7 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
       status: :waiting
     )
     active_room = Room.create!(
+      created_at: now - 1.hour,
       expires_at: now + 10.hours,
       last_message_at: now,
       max_participants: 2,
@@ -50,5 +52,7 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Messages sent" }[:value]
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Reports filed" }[:value]
     assert_equal 3, metrics.charts.size
+    assert_equal [ active_room.id, waiting_room.id ], metrics.recent_rooms.map(&:id)
+    assert_equal [ "test" ], metrics.recent_reports.map(&:reason)
   end
 end

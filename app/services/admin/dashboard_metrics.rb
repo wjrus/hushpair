@@ -80,6 +80,21 @@ module Admin
       ]
     end
 
+    def recent_rooms(limit: 12)
+      Room.where(created_at: range_window)
+        .includes(:room_participants)
+        .order(created_at: :desc)
+        .limit(limit)
+    end
+
+    def recent_reports(limit: 12)
+      ModerationEvent.report_submitted
+        .where(created_at: range_window)
+        .includes(:room)
+        .order(created_at: :desc)
+        .limit(limit)
+    end
+
     private
 
     def resolve_range(preset:, start_date:, end_date:)

@@ -40,7 +40,8 @@
 .admin-topbar,
 .admin-range,
 .admin-live-grid,
-.admin-charts-grid {
+.admin-charts-grid,
+.admin-recent-grid {
   display: grid;
   gap: 0.9rem;
 }
@@ -200,6 +201,65 @@
   grid-column: 1 / -1;
 }
 
+.admin-recent-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.admin-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-activity-list__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.admin-activity-list__item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.admin-activity-list__main {
+  min-width: 0;
+}
+
+.admin-activity-list__title,
+.admin-activity-list__meta,
+.admin-panel__empty {
+  margin: 0;
+}
+
+.admin-activity-list__title {
+  font-weight: 600;
+}
+
+.admin-activity-list__meta,
+.admin-activity-list__time,
+.admin-panel__empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.admin-activity-list__meta {
+  margin-top: 0.18rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.admin-activity-list__time {
+  white-space: nowrap;
+}
+
 .admin-chart {
   width: 100%;
   height: auto;
@@ -214,7 +274,8 @@
 @media (max-width: 900px) {
   .admin-stats-grid,
   .admin-live-grid,
-  .admin-charts-grid {
+  .admin-charts-grid,
+  .admin-recent-grid {
     grid-template-columns: 1fr;
   }
 

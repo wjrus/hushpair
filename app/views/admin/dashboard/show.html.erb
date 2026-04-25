@@ -89,4 +89,68 @@
       </article>
     <% end %>
   </section>
+
+  <section class="admin-recent-grid">
+    <article class="admin-panel">
+      <div class="admin-panel__header">
+        <div>
+          <h2>Recent rooms</h2>
+          <p>Newest rooms in the selected range.</p>
+        </div>
+      </div>
+
+      <% recent_rooms = @metrics.recent_rooms %>
+      <% if recent_rooms.any? %>
+        <ol class="admin-activity-list" aria-label="Recent rooms">
+          <% recent_rooms.each do |room| %>
+            <li class="admin-activity-list__item">
+              <div class="admin-activity-list__main">
+                <p class="admin-activity-list__title"><%= room.slug.tr("-", " ") %></p>
+                <p class="admin-activity-list__meta">
+                  <span><%= room.status.humanize %></span>
+                  <span aria-hidden="true">·</span>
+                  <span><%= pluralize(room.room_participants.size, "participant") %></span>
+                  <span aria-hidden="true">·</span>
+                  <span><%= room.retention_summary %></span>
+                </p>
+              </div>
+              <time class="admin-activity-list__time" datetime="<%= room.created_at.iso8601 %>"><%= time_ago_in_words(room.created_at) %> ago</time>
+            </li>
+          <% end %>
+        </ol>
+      <% else %>
+        <p class="admin-panel__empty">No rooms in this range.</p>
+      <% end %>
+    </article>
+
+    <article class="admin-panel">
+      <div class="admin-panel__header">
+        <div>
+          <h2>Recent reports</h2>
+          <p>Report events only. No message content is shown.</p>
+        </div>
+      </div>
+
+      <% recent_reports = @metrics.recent_reports %>
+      <% if recent_reports.any? %>
+        <ol class="admin-activity-list" aria-label="Recent reports">
+          <% recent_reports.each do |event| %>
+            <li class="admin-activity-list__item">
+              <div class="admin-activity-list__main">
+                <p class="admin-activity-list__title"><%= event.reason.to_s.humanize %></p>
+                <p class="admin-activity-list__meta">
+                  <span><%= event.room.slug.tr("-", " ") %></span>
+                  <span aria-hidden="true">·</span>
+                  <span><%= event.room.status.humanize %></span>
+                </p>
+              </div>
+              <time class="admin-activity-list__time" datetime="<%= event.created_at.iso8601 %>"><%= time_ago_in_words(event.created_at) %> ago</time>
+            </li>
+          <% end %>
+        </ol>
+      <% else %>
+        <p class="admin-panel__empty">No reports in this range.</p>
+      <% end %>
+    </article>
+  </section>
 </main>
