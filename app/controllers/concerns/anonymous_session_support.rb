@@ -3,6 +3,7 @@ module AnonymousSessionSupport
 
   included do
     helper_method :current_anonymous_session if respond_to?(:helper_method)
+    helper_method :current_client_instance_id if respond_to?(:helper_method)
   end
 
   private
