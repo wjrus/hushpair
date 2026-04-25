@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "Hushpair" %></title>
+    <title><%= content_for(:title) || "hushpair" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Hushpair">
+    <meta name="application-name" content="hushpair">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -29,7 +29,7 @@
 
     <header class="site-header">
       <div class="site-header__inner">
-        <%= link_to root_path, class: "brandmark", aria: { label: "Hushpair home" } do %>
+        <%= link_to root_path, class: "brandmark", aria: { label: "hushpair home" } do %>
           <%= image_tag "hushpair-logo.svg", alt: "hushpair", class: "brandmark__logo" %>
         <% end %>
 
