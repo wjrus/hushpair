@@ -5,7 +5,7 @@
     <p class="eyebrow">Privacy Policy</p>
     <h1>hushpair Privacy Policy</h1>
     <p class="lede">
-      Effective date: <%= Date.current.strftime("%B %-d, %Y") %>. hushpair is designed to collect as
+      Effective date: <%= legal_effective_date(:privacy) %>. hushpair is designed to collect as
       little information as possible and to retain it for as little time as possible.
     </p>
   </section>
@@ -38,9 +38,9 @@
   <section class="card legal-card">
     <h2>Cookies and local browser storage</h2>
     <p>
-      hushpair uses a small number of essential cookies to keep the service working. These are used
-      for anonymous session continuity, room access, bookmark recovery in the same browser, and
-      basic theme preference storage.
+      hushpair uses a small number of essential cookies and local browser storage entries to keep
+      the service working. These are used for anonymous session continuity, room access, bookmark
+      recovery in the same browser, and theme preference storage.
     </p>
     <p>
       We do not use cookie banners for advertising or behavioral tracking because that is not what
@@ -79,13 +79,14 @@
   <section class="card legal-card">
     <h2>Retention</h2>
     <p>
-      We intend to keep chat rooms and their associated data only as long as necessary to operate
-      the service, diagnose issues, and respond to abuse or safety incidents.
+      We aim to keep chat rooms and their associated data only as long as necessary to operate the
+      service, diagnose issues, and respond to abuse or safety incidents.
     </p>
     <p>
-      Our operating principle is short retention. Rooms expire automatically. Diagnostics should be
-      minimized. Where possible, we prefer aggregate counts and obfuscated identifiers over raw
-      historical records.
+      Rooms expire automatically. Message history may also be limited by room-level retention
+      settings such as keeping only the last set of messages or only a recent time window. We try
+      to prefer aggregate counts and obfuscated identifiers over raw historical records whenever
+      possible.
     </p>
   </section>
 
@@ -107,6 +108,24 @@
       We may use limited, privacy-conscious controls such as throttling, hashed network identifiers,
       and basic content safety checks to reduce spam, harassment, fraud, and attempts to move users
       off-platform using personal contact details.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Third-party infrastructure</h2>
+    <p>
+      Like most internet services, hushpair depends on hosting, networking, and software
+      infrastructure provided by third parties. Those providers may process limited technical data
+      such as IP addresses, connection metadata, or logs as part of running the service.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Your choices</h2>
+    <p>
+      You can stop using hushpair at any time, end a room, or let a room expire naturally. Because
+      the service does not use full accounts, we may not always be able to associate a later request
+      with a past anonymous session unless you still control the same browser-based access state.
     </p>
   </section>
 

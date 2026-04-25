@@ -5,7 +5,7 @@
     <p class="eyebrow">Terms of Use</p>
     <h1>hushpair Terms of Use</h1>
     <p class="lede">
-      Effective date: <%= Date.current.strftime("%B %-d, %Y") %>. These Terms govern your use of
+      Effective date: <%= legal_effective_date(:terms) %>. These Terms govern your use of
       hushpair. By using the service, you agree to them.
     </p>
   </section>
@@ -47,8 +47,9 @@
       expires or is invalidated.
     </p>
     <p>
-      You are responsible for how you share room links. hushpair cannot guarantee that a link forwarded
-      beyond the intended recipient will remain private.
+      Some access, including bookmark-style return access, may be limited to the same browser or session
+      where it was created. You are responsible for how you share room links. hushpair cannot guarantee
+      that a link forwarded beyond the intended recipient will remain private.
     </p>
   </section>
 
@@ -67,6 +68,15 @@
     <p>
       Our Privacy Policy explains how we handle data. By using hushpair, you acknowledge that temporary
       processing, storage, and security controls are part of operating a live chat service.
+    </p>
+  </section>
+
+  <section class="card legal-card">
+    <h2>Not for emergencies</h2>
+    <p>
+      hushpair is not an emergency service and should not be used for urgent safety, medical, or
+      time-critical communications. We cannot guarantee immediate delivery, active monitoring, or
+      continuous availability.
     </p>
   </section>
 
