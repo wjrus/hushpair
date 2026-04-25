@@ -1,8 +1,23 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
-fi
+wait_for_database() {
+  if [ -n "${DATABASE_URL:-}" ]; then
+    until pg_isready -d "$DATABASE_URL" >/dev/null 2>&1; do
+      echo "Waiting for database..."
+      sleep 1
+    done
+  fi
+}
+
+prepare_database_if_needed() {
+  command="${*}"
+
+  if [[ "$command" == *"puma"* ]] || [[ "$command" == *"./bin/rails server"* ]] || [[ "$command" == *"./bin/thrust"* ]]; then
+    wait_for_database
+    ./bin/rails db:prepare
+  fi
+}
+
+prepare_database_if_needed "$@"
 
 exec "${@}"

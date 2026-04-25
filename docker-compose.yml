@@ -1,0 +1,38 @@
+version: "2.4"
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        RUBY_VERSION: "3.4.9"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "127.0.0.1:${HUSHPAIR_APP_PORT:-5000}:3000"
+    restart: unless-stopped
+    command: bundle exec puma -C config/puma.rb
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hushpair}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-hushpair_production}
+    volumes:
+      - hushpair_postgres:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    command: redis-server --appendonly yes
+    volumes:
+      - hushpair_redis:/data
+    restart: unless-stopped
+
+volumes:
+  hushpair_postgres:
+  hushpair_redis:

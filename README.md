@@ -94,16 +94,13 @@ Recommended:
 - `HUSHPAIR_CABLE_ALLOWED_ORIGINS`
 - `HUSHPAIR_FORCE_SSL=true`
 - `RAILS_LOG_LEVEL=info`
-- `SOLID_QUEUE_IN_PUMA=true`
 
 ## Deploy shape
 
 Recommended first production shape on a Linode VPS:
 
-- Apache terminates TLS and proxies HTTP + `/cable`
-- Puma serves Rails
-- PostgreSQL stores app data
-- Redis backs Action Cable
-- `hushpair:maintenance` runs from cron or a systemd timer every 5 minutes
+- Docker Compose runs Rails/Puma, PostgreSQL, and Redis
+- Apache on the host terminates TLS and proxies HTTP + `/cable`
+- `hushpair:maintenance` runs from host cron every 5 minutes
 
 That keeps the first deployment simple and conventional. If websocket scale becomes a real problem later, the likely next step is swapping the realtime layer to AnyCable rather than redesigning the app.

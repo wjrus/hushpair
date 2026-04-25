@@ -1,87 +1,89 @@
-# Deployment Guide
+# Docker Compose Deployment
 
-This is the recommended first production setup for `hushpair` on a small Linode VPS.
+This is the recommended first production deployment for `hushpair` on your existing Ubuntu Docker host.
 
-## Architecture
+## Target shape
 
-- Apache handles TLS and reverse proxying
-- Puma runs the Rails app
-- PostgreSQL stores the app, cache, queue, and cable databases
-- Redis backs Action Cable
-- Solid Queue runs inside Puma for a single-server deployment
-- A cron job or systemd timer runs `hushpair:maintenance` every 5 minutes
+- Docker Compose runs:
+  - `web` for Rails + Puma
+  - `db` for PostgreSQL
+  - `redis` for Action Cable
+- Apache stays on the host and reverse proxies to the app container
+- Host cron runs the maintenance task every 5 minutes
 
-## 1. Provision packages
+For your current host, the app should bind to `127.0.0.1:5000` so it does not collide with Grafana on port `3000`.
 
-Install:
+## 1. Prepare the app directory
 
-- Ruby `3.4.9` via `rbenv`
-- PostgreSQL
-- Redis
-- Apache with:
-  - `proxy`
-  - `proxy_http`
-  - `proxy_wstunnel`
-  - `headers`
-  - `ssl`
-
-## 2. Environment
-
-Set these in the service environment:
+Clone the repo to a stable location, for example:
 
 ```sh
+mkdir -p ~/apps
+cd ~/apps
+git clone <your-repo-url> hushpair
+cd hushpair
+```
+
+Copy the environment template:
+
+```sh
+cp .env.example .env
+```
+
+Then edit `.env` with real values.
+
+## 2. Required `.env` values
+
+At minimum, set:
+
+```dotenv
 RAILS_ENV=production
-DATABASE_URL=postgresql://...
-REDIS_URL=redis://127.0.0.1:6379/1
-SECRET_KEY_BASE=...
+HUSHPAIR_APP_PORT=5000
+
+POSTGRES_USER=hushpair
+POSTGRES_PASSWORD=use-a-strong-password
+POSTGRES_DB=hushpair_production
+DATABASE_URL=postgresql://hushpair:use-a-strong-password@db:5432/hushpair_production
+
+REDIS_URL=redis://redis:6379/1
+
+SECRET_KEY_BASE=generate-a-real-secret
 HUSHPAIR_ALLOWED_HOSTS=hushpair.com,www.hushpair.com
 HUSHPAIR_CABLE_ALLOWED_ORIGINS=https://hushpair.com,https://www.hushpair.com
 HUSHPAIR_FORCE_SSL=true
-HUSHPAIR_AR_ENCRYPTION_PRIMARY_KEY=...
-HUSHPAIR_AR_ENCRYPTION_DETERMINISTIC_KEY=...
-HUSHPAIR_AR_ENCRYPTION_KEY_DERIVATION_SALT=...
-SOLID_QUEUE_IN_PUMA=true
-RAILS_LOG_LEVEL=info
+
+HUSHPAIR_AR_ENCRYPTION_PRIMARY_KEY=generate-a-real-key
+HUSHPAIR_AR_ENCRYPTION_DETERMINISTIC_KEY=generate-a-real-key
+HUSHPAIR_AR_ENCRYPTION_KEY_DERIVATION_SALT=generate-a-real-salt
 ```
 
-## 3. Boot the app
+Generate secure values with commands like:
+
+```sh
+openssl rand -hex 64
+```
+
+## 3. Build and boot
 
 From the app directory:
 
 ```sh
-eval "$(rbenv init - zsh)"
-RBENV_VERSION=3.4.9 bundle install
-RBENV_VERSION=3.4.9 bin/rails db:prepare
-RBENV_VERSION=3.4.9 bundle exec puma -C config/puma.rb
+docker-compose build
+docker-compose up -d
 ```
 
-For a systemd service, keep Puma bound to localhost and let Apache front it.
+Check status:
 
-Example service shape:
-
-```ini
-[Unit]
-Description=hushpair web
-After=network.target postgresql.service redis.service
-
-[Service]
-Type=simple
-User=deploy
-WorkingDirectory=/srv/hushpair/current
-Environment=RAILS_ENV=production
-Environment=PORT=3000
-Environment=SOLID_QUEUE_IN_PUMA=true
-ExecStart=/bin/zsh -lc 'eval "$(rbenv init - zsh)" && RBENV_VERSION=3.4.9 bundle exec puma -C config/puma.rb'
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
+```sh
+docker-compose ps
+docker-compose logs --tail=200 web
 ```
+
+The container entrypoint waits for PostgreSQL and runs `bin/rails db:prepare` automatically before Puma starts.
 
 ## 4. Apache reverse proxy
 
-The important part is supporting both normal HTTP traffic and websocket upgrades for `/cable`.
+Proxy HTTPS traffic on the host to `127.0.0.1:5000`, including websocket traffic for `/cable`.
 
 Example vhost:
 
@@ -103,61 +105,85 @@ Example vhost:
   ProxyPreserveHost On
   RequestHeader set X-Forwarded-Proto "https"
 
-  ProxyPass /cable ws://127.0.0.1:3000/cable retry=0
-  ProxyPassReverse /cable ws://127.0.0.1:3000/cable
+  ProxyPass /cable ws://127.0.0.1:5000/cable retry=0
+  ProxyPassReverse /cable ws://127.0.0.1:5000/cable
 
-  ProxyPass / http://127.0.0.1:3000/ retry=0
-  ProxyPassReverse / http://127.0.0.1:3000/
+  ProxyPass / http://127.0.0.1:5000/ retry=0
+  ProxyPassReverse / http://127.0.0.1:5000/
 
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </VirtualHost>
 ```
 
-## 5. Maintenance job
-
-Run every 5 minutes:
+Required Apache modules:
 
 ```sh
-cd /srv/hushpair/current && /bin/zsh -lc 'eval "$(rbenv init - zsh)" && RBENV_VERSION=3.4.9 bin/rails hushpair:maintenance'
+sudo a2enmod proxy proxy_http proxy_wstunnel headers ssl rewrite
+sudo systemctl reload apache2
 ```
 
-Recommended cron entry:
+## 5. Host cron for maintenance
+
+Use host cron instead of trying to make Compose schedule things.
+
+Edit crontab:
+
+```sh
+crontab -e
+```
+
+Add this line, adjusting the path if you deploy somewhere else:
 
 ```cron
-*/5 * * * * cd /srv/hushpair/current && /bin/zsh -lc 'eval "$(rbenv init - zsh)" && RBENV_VERSION=3.4.9 bin/rails hushpair:maintenance' >> log/maintenance.log 2>&1
+*/5 * * * * cd /home/wjr/apps/hushpair && /usr/bin/docker-compose exec -T web bin/rails hushpair:maintenance >> /home/wjr/apps/hushpair/log/maintenance.log 2>&1
 ```
 
-## 6. Minimum operational checks
+Notes:
 
-- `GET /up` returns success
-- Rails boots with all encryption keys present
-- `/cable` websocket upgrade works through Apache
-- `hushpair:maintenance` runs cleanly
-- Room expiry and purge behavior can be observed in logs without leaking message content
+- `-T` is important for cron so it does not expect a TTY
+- the maintenance task expires rooms, trims retained messages, and purges old closed rooms
+- `docker-compose` version `1.29.2` on your host is fine for this setup
 
-## 7. Logging posture
+## 6. Basic deploy/update flow
 
-Keep logs minimal:
+When you push new code:
 
-- no debug logging in production
-- no plaintext message body logging
-- no plaintext nickname logging
-- health checks silenced where possible
+```sh
+cd /home/wjr/apps/hushpair
+git pull
+docker-compose build web
+docker-compose up -d web
+```
+
+If dependencies or config changed more broadly:
+
+```sh
+docker-compose up -d
+```
+
+## 7. Health checks
+
+After boot:
+
+```sh
+curl -I http://127.0.0.1:5000/up
+docker-compose logs --tail=200 web
+docker-compose logs --tail=100 db
+docker-compose logs --tail=100 redis
+```
+
+Once Apache is in front:
+
+```sh
+curl -I https://hushpair.com/up
+```
 
 ## 8. Backups
 
-Back up PostgreSQL and keep the retention short. This product is intentionally not optimized for long-lived archival.
-
 At minimum:
 
-- nightly PostgreSQL dump
-- secure off-host storage
-- periodic restore test on a staging instance
+- back up the `hushpair_postgres` volume or run regular `pg_dump`
+- keep off-host copies
+- test restores at least once before trusting the backup plan
 
-## 9. Later upgrades
-
-If traffic grows:
-
-- move Solid Queue to a dedicated worker process
-- monitor Redis connection count and websocket load
-- consider AnyCable once Action Cable becomes the bottleneck
+Because Hushpair is privacy-first and short-retention by design, this should stay operationally light.
