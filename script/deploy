@@ -13,4 +13,16 @@ docker compose build web
 docker compose up -d web
 docker compose logs --tail=100 web
 sleep 1
-curl -I -H "Host: ${APP_HOST}" "http://127.0.0.1:${APP_PORT}/up"
+
+for attempt in {1..10}; do
+  if curl -fsSI -H "Host: ${APP_HOST}" "http://127.0.0.1:${APP_PORT}/up"; then
+    exit 0
+  fi
+
+  if [[ "$attempt" -eq 10 ]]; then
+    echo "Health check failed after ${attempt} attempts." >&2
+    exit 1
+  fi
+
+  sleep 1
+done
