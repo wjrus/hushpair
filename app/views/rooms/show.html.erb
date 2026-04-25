@@ -11,6 +11,11 @@
       <h2>Bookmark already active</h2>
       <p class="compact-lede">This bookmark is already open in another browser. Close that session or wait a minute before trying again.</p>
     </section>
+  <% elsif @bookmark_restricted %>
+    <section class="card utility-card">
+      <h2>Bookmark limited to this browser</h2>
+      <p class="compact-lede">For safety, bookmark links only reopen chats in the browser that originally joined the room.</p>
+    </section>
   <% end %>
 
   <% if @invite_preview %>
@@ -159,6 +164,17 @@
             <div class="toolbar-group toolbar-group-actions">
               <span class="toolbar-label">Room</span>
               <div class="menu-actions">
+                <%= form_with url: report_room_path(@room), method: :post, class: "report-form" do %>
+                  <%= hidden_field_tag :participant_token, @participant_return_token if @participant_return_token.present? %>
+                  <%= select_tag :reason, options_for_select([
+                    ["Harassment", "harassment"],
+                    ["Spam", "spam"],
+                    ["Hate or threats", "hate"],
+                    ["Self-harm", "self-harm"],
+                    ["Other", "other"]
+                  ]), class: "toolbar-input toolbar-input-small" %>
+                  <%= submit_tag "Report and leave", class: "button button-secondary button-compact" %>
+                <% end %>
                 <%= form_with url: leave_room_path(@room), method: :post do %>
                   <%= hidden_field_tag :participant_token, @participant_return_token if @participant_return_token.present? %>
                   <%= submit_tag "Leave chat", class: "button button-secondary button-compact" %>

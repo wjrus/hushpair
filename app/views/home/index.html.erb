@@ -25,4 +25,32 @@
       <p>Open the private invite you received to enter the room.</p>
     </section>
   </section>
+
+  <% if @open_room_participations.any? %>
+    <section class="card home-room-list">
+      <div class="home-room-list__header">
+        <h2>Your open rooms</h2>
+        <p>Rooms still available in this browser.</p>
+      </div>
+
+      <ul class="home-room-list__items">
+        <% @open_room_participations.each do |participation| %>
+          <% room = participation.room %>
+          <li class="home-room-list__item">
+            <div>
+              <p class="home-room-list__name"><%= room.slug.tr("-", " ") %></p>
+              <p class="home-room-list__meta">
+                <span><%= participation.role == "creator" ? "Creator" : "Guest" %></span>
+                <span aria-hidden="true">·</span>
+                <span><%= room.retention_summary %></span>
+                <span aria-hidden="true">·</span>
+                <span><%= room.expiry_summary %></span>
+              </p>
+            </div>
+            <%= link_to "Open", room_path(room), class: "button button-secondary button-compact" %>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
 </main>

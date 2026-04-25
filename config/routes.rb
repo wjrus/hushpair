@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     patch :retention, on: :member, action: :update_retention
     post :leave, on: :member
     post :end_chat, on: :member
+    post :report, on: :member
   end
 
   namespace :api do

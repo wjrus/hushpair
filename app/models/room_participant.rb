@@ -10,6 +10,8 @@ class RoomParticipant < ApplicationRecord
   enum :role, { creator: 0, guest: 1 }
   enum :nickname_state, { pending_review: 0, accepted: 1, rejected: 2 }, default: :pending_review
 
+  scope :present_members, -> { where(left_at: nil) }
+
   validates :participant_token_digest, presence: true, uniqueness: true
   validates :anonymous_session_id, uniqueness: { scope: :room_id }
   validates :nickname, length: { maximum: 40 }, allow_blank: true

@@ -13,6 +13,15 @@ class AnonymousSession < ApplicationRecord
   validates :session_token_digest, presence: true, uniqueness: true
   validates :current_nickname, length: { maximum: 40 }, allow_blank: true
 
+  def open_room_participations
+    room_participants
+      .joins(:room)
+      .includes(:room)
+      .where(left_at: nil)
+      .merge(Room.open_statuses.where("rooms.expires_at > ?", Time.current))
+      .order("rooms.last_message_at DESC NULLS LAST, rooms.created_at DESC")
+  end
+
   private
 
   def ensure_public_id

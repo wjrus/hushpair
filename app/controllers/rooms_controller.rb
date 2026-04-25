@@ -1,5 +1,5 @@
 class RoomsController < ApplicationController
-  before_action :set_room, only: [ :show, :join, :update_retention, :leave, :end_chat ]
+  before_action :set_room, only: [ :show, :join, :update_retention, :leave, :end_chat, :report ]
 
   def show
     @room.expire_if_needed!
@@ -17,7 +17,8 @@ class RoomsController < ApplicationController
     @room_expiry_summary = @room.expiry_summary
     @creator_display_name = @room.room_participants.creator.first&.nickname.presence || "Anonymous"
     @room_display_name = @room.slug.tr("-", " ")
-    @presence_conflict = flash.now[:alert] == "This bookmark is already active in another browser."
+    @presence_conflict = flash.now[:alert] == "This bookmark is already open in another browser."
+    @bookmark_restricted = flash.now[:alert] == "This bookmark only works in the browser that joined this room."
   end
 
   def create
@@ -143,6 +144,27 @@ class RoomsController < ApplicationController
     redirect_to root_path, notice: "Chat ended."
   end
 
+  def report
+    participant = restore_participant_from_params || current_room_participant_for(@room)
+    unless participant.present?
+      redirect_to room_path(@room.slug), alert: "You are not currently in this chat."
+      return
+    end
+
+    @room.moderation_events.create!(
+      anonymous_session: current_anonymous_session || participant.anonymous_session,
+      details: {},
+      kind: :report_submitted,
+      reason: report_reason,
+      room_participant: participant
+    )
+
+    @room.leave!(participant:)
+    forget_room_participant!(room: @room)
+
+    redirect_to root_path, notice: "Thanks. The chat was reported and closed for you."
+  end
+
   private
 
   def set_room
@@ -156,8 +178,12 @@ class RoomsController < ApplicationController
 
     participant = room_participant_for_token(@room, raw_token)
     return unless participant.present?
+    unless bookmark_owner?(participant)
+      flash.now[:alert] = "This bookmark only works in the browser that joined this room."
+      return
+    end
     if ParticipantPresenceRegistry.active_elsewhere?(room: @room, participant:, client_instance_id: current_client_instance_id)
-      flash.now[:alert] = "This bookmark is already active in another browser."
+      flash.now[:alert] = "This bookmark is already open in another browser."
       return
     end
 
@@ -217,5 +243,17 @@ class RoomsController < ApplicationController
     end
 
     room_url(room, invite_token: raw_token)
+  end
+
+  def bookmark_owner?(participant)
+    session_matches = current_anonymous_session.present? && participant.anonymous_session_id == current_anonymous_session.id
+    cookie_matches = current_room_participant_for(@room)&.id == participant.id
+
+    session_matches || cookie_matches
+  end
+
+  def report_reason
+    reason = params[:reason].presence_in(%w[harassment spam hate self-harm other])
+    reason || "other"
   end
 end

@@ -76,4 +76,49 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Room expired", creator.response.body
     assert_no_match "data-chat-room-public-id", creator.response.body
   end
+
+  test "bookmark links do not restore a participant in a different browser session" do
+    creator = open_session
+    creator.post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json
+    assert_equal 201, creator.response.status
+
+    created = JSON.parse(creator.response.body)
+    room_slug = created.dig("room", "slug")
+    participant_token = creator.response.headers["X-Participant-Token"]
+
+    stranger = open_session
+    stranger.get room_path(room_slug, participant_token: participant_token)
+
+    assert_equal 200, stranger.response.status
+    assert_match "Bookmark limited to this browser", stranger.response.body
+    assert_no_match "data-chat-room-public-id", stranger.response.body
+  end
+
+  test "home page shows open rooms for the current browser session" do
+    creator = open_session
+    creator.post rooms_path, params: { nickname: "Quiet Fox" }
+    assert_equal 302, creator.response.status
+
+    creator.get root_path
+
+    assert_equal 200, creator.response.status
+    assert_match "Your open rooms", creator.response.body
+    assert_match "Open", creator.response.body
+  end
+
+  test "report and leave creates a moderation event and redirects home" do
+    creator = open_session
+    creator.post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json
+    created = JSON.parse(creator.response.body)
+    room_slug = created.dig("room", "slug")
+    participant_token = creator.response.headers["X-Participant-Token"]
+
+    assert_difference -> { ModerationEvent.report_submitted.count }, 1 do
+      creator.post report_room_path(room_slug), params: { participant_token: participant_token, reason: "spam" }
+    end
+
+    assert_equal 302, creator.response.status
+    assert_equal root_url, creator.response.location
+    assert_equal "spam", ModerationEvent.report_submitted.last.reason
+  end
 end
