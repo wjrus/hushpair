@@ -323,6 +323,16 @@ const initRoomChat = (root) => {
     })
   })
 
+  root.querySelectorAll("form[data-chat-confirm]").forEach((actionForm) => {
+    actionForm.addEventListener("submit", (event) => {
+      const message = actionForm.dataset.chatConfirm
+      if (!message) return
+      if (window.confirm(message)) return
+
+      event.preventDefault()
+    })
+  })
+
   headerLinkText?.addEventListener("focus", () => headerLinkText.select())
   headerLinkText?.addEventListener("click", () => headerLinkText.select())
 

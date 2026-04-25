@@ -95,7 +95,7 @@
         <div class="menu-actions">
           <details class="report-disclosure">
             <summary class="button button-secondary button-compact report-disclosure__summary">Report</summary>
-            <%= form_with url: report_room_path(room), method: :post, class: "report-form" do %>
+            <%= form_with url: report_room_path(room), method: :post, class: "report-form", data: { chat_confirm: "Report this chat and end it for both people?" } do %>
               <%= hidden_field_tag :participant_token, participant_return_token if participant_return_token.present? %>
               <%= select_tag :reason, options_for_select([
                 ["Harassment", "harassment"],
@@ -107,7 +107,7 @@
               <%= submit_tag "Report and end", class: "button button-secondary button-compact" %>
             <% end %>
           </details>
-          <%= form_with url: leave_room_path(room), method: :post do %>
+          <%= form_with url: leave_room_path(room), method: :post, data: { chat_confirm: "End this chat for both people?" } do %>
             <%= hidden_field_tag :participant_token, participant_return_token if participant_return_token.present? %>
             <%= submit_tag "End chat", class: "button button-secondary button-compact" %>
           <% end %>
