@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include AnonymousSessionSupport
+  before_action :ensure_client_instance_id!
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ENV_FILE="${1:-.env}"
+KEY="HUSHPAIR_RELEASE"
+VALUE="${HUSHPAIR_RELEASE:-$(git rev-parse --short=12 HEAD)}"
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing env file: $ENV_FILE" >&2
+  exit 1
+fi
+
+tmp_file="$(mktemp)"
+trap 'rm -f "$tmp_file"' EXIT
+
+if grep -q "^${KEY}=" "$ENV_FILE"; then
+  sed "s/^${KEY}=.*/${KEY}=${VALUE}/" "$ENV_FILE" >"$tmp_file"
+else
+  cat "$ENV_FILE" >"$tmp_file"
+  printf "\n%s=%s\n" "$KEY" "$VALUE" >>"$tmp_file"
+fi
+
+mv "$tmp_file" "$ENV_FILE"
+echo "${KEY}=${VALUE}"

@@ -61,11 +61,16 @@
           <%= image_tag "hushpair-mark.svg", alt: "", aria: { hidden: true }, class: "site-footer__mark" %>
           <span>hushpair</span>
         </p>
-        <p class="site-footer__links">
-          <%= link_to "Privacy Policy", privacy_path %>
-          <span aria-hidden="true">·</span>
-          <%= link_to "Terms of Use", terms_path %>
-        </p>
+        <div class="site-footer__meta">
+          <p class="site-footer__links">
+            <%= link_to "Privacy Policy", privacy_path %>
+            <span aria-hidden="true">·</span>
+            <%= link_to "Terms of Use", terms_path %>
+          </p>
+          <% if build_label.present? %>
+            <p class="site-footer__build"><%= build_label %></p>
+          <% end %>
+        </div>
       </div>
     </footer>
   </body>

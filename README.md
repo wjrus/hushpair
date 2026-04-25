@@ -94,6 +94,7 @@ Recommended:
 - `HUSHPAIR_CABLE_ALLOWED_ORIGINS`
 - `HUSHPAIR_FORCE_SSL=true`
 - `RAILS_LOG_LEVEL=info`
+- `HUSHPAIR_RELEASE`
 
 ## Deploy shape
 
@@ -104,3 +105,13 @@ Recommended first production shape on a Linode VPS:
 - `hushpair:maintenance` runs from host cron every 5 minutes
 
 That keeps the first deployment simple and conventional. If websocket scale becomes a real problem later, the likely next step is swapping the realtime layer to AnyCable rather than redesigning the app.
+
+## Release stamping
+
+For production Docker deploys, stamp the current commit into `.env` before you build:
+
+```sh
+./script/update-env
+```
+
+That updates `HUSHPAIR_RELEASE` so the footer can show the deployed build identifier.

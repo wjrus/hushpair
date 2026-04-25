@@ -6,6 +6,11 @@
       <h2>Room expired</h2>
       <p class="compact-lede">This room is no longer available.</p>
     </section>
+  <% elsif @presence_conflict %>
+    <section class="card utility-card">
+      <h2>Bookmark already active</h2>
+      <p class="compact-lede">This bookmark is already open in another browser. Close that session or wait a minute before trying again.</p>
+    </section>
   <% end %>
 
   <% if @invite_preview %>
@@ -47,11 +52,47 @@
       data-chat-last-seq="<%= @messages.last&.sequence_number || 0 %>"
       data-chat-room-expires-at="<%= @room.expires_at&.iso8601 %>"
       data-chat-participant-token="<%= @participant_return_token %>"
+      data-chat-presence-url="<%= api_v1_room_presence_path(@room.public_id) %>"
+      data-chat-client-instance-id="<%= current_client_instance_id %>"
+      data-chat-share-url="<%= @share_invite_url %>"
+      data-chat-bookmark-url="<%= @participant_return_url %>"
+      data-chat-role="<%= @participant.role %>"
     >
       <div class="chat-header">
-        <div class="chat-header__status">
-          <span class="room-pill" id="room-pill" role="status" aria-live="polite"><%= @room.status.humanize %></span>
-          <span class="chat-header__identity"><%= @participant.nickname.presence || "Anonymous" %></span>
+        <div class="chat-header__main">
+          <div class="chat-header__status">
+            <span class="room-pill" id="room-pill" role="status" aria-live="polite"><%= @room.status.humanize %></span>
+            <span class="chat-header__identity"><%= @participant.nickname.presence || "Anonymous" %></span>
+          </div>
+          <div class="chat-header__link-slot">
+            <% if @share_invite_url.present? %>
+              <span
+                class="link-chip chat-header__link-chip"
+                id="chat-header-link-chip"
+                data-copy-value="<%= @share_invite_url %>"
+                data-share-url="<%= @share_invite_url %>"
+                data-bookmark-url="<%= @participant_return_url %>"
+                data-waiting-label="Share link"
+                data-active-label="Bookmark"
+              >
+                <span class="chat-header__link-label" id="chat-header-link-label">Share link</span>
+                <span class="link-chip__text" id="chat-header-link-text"><%= @share_invite_url %></span>
+                <button class="button button-secondary button-copy" type="button">Copy</button>
+              </span>
+            <% elsif @participant_return_url.present? %>
+              <span
+                class="link-chip chat-header__link-chip"
+                id="chat-header-link-chip"
+                data-copy-value="<%= @participant_return_url %>"
+                data-bookmark-url="<%= @participant_return_url %>"
+                data-active-label="Bookmark"
+              >
+                <span class="chat-header__link-label" id="chat-header-link-label">Bookmark</span>
+                <span class="link-chip__text" id="chat-header-link-text"><%= @participant_return_url %></span>
+                <button class="button button-secondary button-copy" type="button">Copy</button>
+              </span>
+            <% end %>
+          </div>
         </div>
         <details class="chat-menu">
           <summary class="chat-menu__trigger" aria-label="Open chat settings">
@@ -60,39 +101,7 @@
             <span></span>
           </summary>
           <div class="chat-menu__panel">
-            <% if @participant&.creator? && params[:invite_token].present? %>
-              <div class="toolbar-group">
-                <span class="toolbar-label-group">
-                  <span class="toolbar-label">Share</span>
-                  <span class="help-badge" tabindex="0">
-                    ?
-                    <span class="help-popover">Send this invite link to the second participant. Opening it alone does not join the room.</span>
-                  </span>
-                </span>
-                <span class="link-chip" data-copy-value="<%= room_url(@room, invite_token: params[:invite_token]) %>">
-                  <span class="link-chip__text"><%= room_url(@room, invite_token: params[:invite_token]) %></span>
-                  <button class="button button-secondary button-copy" type="button">Copy</button>
-                </span>
-              </div>
-            <% end %>
-
             <div class="toolbar-pair-grid">
-              <% if @participant_return_url.present? %>
-                <div class="toolbar-group">
-                  <span class="toolbar-label-group">
-                    <span class="toolbar-label">Bookmark</span>
-                    <span class="help-badge" tabindex="0">
-                      ?
-                      <span class="help-popover">Save this private link if you want to return as the same participant before the room expires.</span>
-                    </span>
-                  </span>
-                  <span class="link-chip" data-copy-value="<%= @participant_return_url %>">
-                    <span class="link-chip__text"><%= @participant_return_url %></span>
-                    <button class="button button-secondary button-copy" type="button">Copy</button>
-                  </span>
-                </div>
-              <% end %>
-
               <div class="toolbar-group toolbar-group-retention">
                 <span class="toolbar-label-group">
                   <span class="toolbar-label">Message Retention</span>
@@ -216,6 +225,7 @@
 
       const messagesUrl = root.dataset.chatMessagesUrl;
       const roomShowUrl = root.dataset.chatRoomShowUrl;
+      const presenceUrl = root.dataset.chatPresenceUrl;
       const list = document.getElementById("message-list");
       const form = document.getElementById("chat-form");
       const bodyInput = document.getElementById("chat-body");
@@ -223,6 +233,9 @@
       const emptyState = document.getElementById("empty-state");
       const roomPill = document.getElementById("room-pill");
       const roomExpirySummary = document.getElementById("room-expiry-summary");
+      const headerLinkChip = document.getElementById("chat-header-link-chip");
+      const headerLinkLabel = document.getElementById("chat-header-link-label");
+      const headerLinkText = document.getElementById("chat-header-link-text");
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
       const localParticipantId = Number(root.dataset.chatParticipantId);
       const sendButton = form.querySelector("button");
@@ -231,6 +244,7 @@
       const chatMenu = document.querySelector(".chat-menu");
       const chatMenuTrigger = document.querySelector(".chat-menu__trigger");
       const participantToken = root.dataset.chatParticipantToken;
+      const clientInstanceId = root.dataset.chatClientInstanceId;
 
       let lastSeq = Number(root.dataset.chatLastSeq || 0);
       let expiresAt = root.dataset.chatRoomExpiresAt;
@@ -238,6 +252,7 @@
       let isSending = false;
       let fallbackMessagesInterval = null;
       let fallbackRoomInterval = null;
+      let presenceInterval = null;
       let expiryTimeout = null;
       const renderedSequences = new Set(
         Array.from(list.querySelectorAll(".message-row")).map((row) => Number(row.dataset.sequenceNumber)).filter(Number.isFinite)
@@ -309,6 +324,7 @@
         sendButton.disabled = !roomOpen || isSending;
         if (roomExpirySummary && expirySummary) roomExpirySummary.textContent = expirySummary;
         if (nextExpiresAt) expiresAt = nextExpiresAt;
+        updateHeaderLink(status);
         scheduleExpiryTimeout();
 
         if (!roomOpen) {
@@ -316,6 +332,26 @@
         } else {
           setFeedback("", false);
         }
+      };
+
+      const updateHeaderLink = (status) => {
+        if (!headerLinkChip || !headerLinkText || !headerLinkLabel) return;
+
+        const bookmarkUrl = headerLinkChip.dataset.bookmarkUrl;
+        const shareUrl = headerLinkChip.dataset.shareUrl;
+        const shouldShowShare = status === "waiting" && shareUrl && root.dataset.chatRole === "creator";
+        const nextUrl = shouldShowShare ? shareUrl : bookmarkUrl;
+        const nextLabel = shouldShowShare ? headerLinkChip.dataset.waitingLabel : headerLinkChip.dataset.activeLabel;
+
+        if (!nextUrl) {
+          headerLinkChip.classList.add("is-hidden");
+          return;
+        }
+
+        headerLinkChip.classList.remove("is-hidden");
+        headerLinkChip.dataset.copyValue = nextUrl;
+        headerLinkText.textContent = nextUrl;
+        headerLinkLabel.textContent = nextLabel;
       };
 
       const autosizeComposer = () => {
@@ -362,6 +398,22 @@
         }
       };
 
+      const pingPresence = async () => {
+        if (!presenceUrl || !participantToken || !roomOpen) return;
+
+        try {
+          await fetch(presenceUrl, {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "X-CSRF-Token": csrfToken
+            },
+            credentials: "same-origin"
+          });
+        } catch (_) {
+        }
+      };
+
       const startFallbackSync = () => {
         if (!fallbackMessagesInterval) {
           fallbackMessagesInterval = window.setInterval(syncMessages, 15000);
@@ -369,6 +421,20 @@
         if (!fallbackRoomInterval) {
           fallbackRoomInterval = window.setInterval(syncRoomState, 30000);
         }
+      };
+
+      const startPresenceHeartbeat = () => {
+        if (presenceInterval) return;
+
+        pingPresence();
+        presenceInterval = window.setInterval(pingPresence, 30000);
+      };
+
+      const stopPresenceHeartbeat = () => {
+        if (!presenceInterval) return;
+
+        window.clearInterval(presenceInterval);
+        presenceInterval = null;
       };
 
       const stopFallbackSync = () => {
@@ -471,6 +537,7 @@
         if (document.visibilityState === "visible") {
           syncMessages();
           syncRoomState();
+          pingPresence();
         }
       });
 
@@ -479,21 +546,26 @@
           {
             channel: "RoomChannel",
             room_public_id: root.dataset.chatRoomPublicId,
-            participant_token: participantToken
+            participant_token: participantToken,
+            client_instance_id: clientInstanceId
           },
           {
             connected() {
               stopFallbackSync();
+              startPresenceHeartbeat();
               syncMessages();
               syncRoomState();
             },
 
             disconnected() {
               startFallbackSync();
+              stopPresenceHeartbeat();
             },
 
             rejected() {
               startFallbackSync();
+              stopPresenceHeartbeat();
+              setFeedback("This bookmark is already active in another browser.", true);
             },
 
             received(data) {

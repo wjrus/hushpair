@@ -587,10 +587,38 @@ select {
   border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
 }
 
+.chat-header__main {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .chat-header__status {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.chat-header__link-slot {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.chat-header__link-chip {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  width: 100%;
+  max-width: 34rem;
+  margin-left: auto;
+  padding: 0.34rem 0.45rem;
+}
+
+.chat-header__link-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .chat-header__identity {
@@ -818,6 +846,14 @@ textarea.is-scrollable {
   margin: 0;
 }
 
+.site-footer__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .site-footer__links {
   margin: 0.2rem 0 0;
 }
@@ -837,6 +873,14 @@ textarea.is-scrollable {
   gap: 0.45rem;
   font-weight: 700;
   color: var(--ink);
+}
+
+.site-footer__build {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: right;
+  white-space: nowrap;
 }
 
 .site-footer__mark {
@@ -1020,6 +1064,16 @@ textarea:focus-visible,
 
   .chat-header {
     align-items: center;
+  }
+
+  .chat-header__main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chat-header__link-chip {
+    max-width: none;
+    margin-left: 0;
   }
 
   .chat-card {

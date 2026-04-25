@@ -3,6 +3,11 @@ class Api::V1::PresenceController < Api::V1::BaseController
 
   def create
     current_room_participant.update!(last_seen_at: Time.current)
+    ParticipantPresenceRegistry.register!(
+      room: current_room,
+      participant: current_room_participant,
+      client_instance_id: current_client_instance_id
+    )
 
     render json: {
       presence: {

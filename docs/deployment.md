@@ -32,6 +32,12 @@ cp .env.example .env
 
 Then edit `.env` with real values.
 
+Before each production build, stamp the current commit into `.env`:
+
+```sh
+./script/update-env
+```
+
 ## 2. Required `.env` values
 
 At minimum, set:
@@ -68,6 +74,7 @@ openssl rand -hex 64
 From the app directory:
 
 ```sh
+./script/update-env
 docker-compose build
 docker-compose up -d
 ```
@@ -151,6 +158,7 @@ When you push new code:
 ```sh
 cd /home/wjr/apps/hushpair
 git pull
+./script/update-env
 docker-compose build web
 docker-compose up -d web
 ```

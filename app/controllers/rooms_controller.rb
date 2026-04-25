@@ -5,16 +5,19 @@ class RoomsController < ApplicationController
     @room.expire_if_needed!
     @participant = restore_participant_from_params || current_room_participant_for(@room)
     @invitation = invite_token_present? ? @room.room_invitations.find_by(token_digest: TokenDigest.hexdigest(params[:invite_token])) : nil
+    remember_room_invitation!(room: @room, raw_token: params[:invite_token]) if @participant&.creator? && @invitation.present?
     @joinable = @participant.blank? && @invitation.present? && @room.waiting? && @room.accessible? && @invitation.revoked_at.blank? && @invitation.expires_at&.future?
     @invite_preview = @joinable
     @messages = @participant.present? ? @room.messages.includes(:room_participant).order(:sequence_number) : Message.none
     @chat_open = @participant.present? && @room.accessible?
     @participant_return_token = @participant.present? ? participant_return_token_for(@room) : nil
     @participant_return_url = @participant.present? ? room_url(@room, participant_token: @participant_return_token) : nil
+    @share_invite_url = share_invite_url_for(@room, @participant)
     @retention_options = retention_mode_options
     @room_expiry_summary = @room.expiry_summary
     @creator_display_name = @room.room_participants.creator.first&.nickname.presence || "Anonymous"
     @room_display_name = @room.slug.tr("-", " ")
+    @presence_conflict = flash.now[:alert] == "This bookmark is already active in another browser."
   end
 
   def create
@@ -47,6 +50,7 @@ class RoomsController < ApplicationController
     )
 
     remember_room_participant!(room:, raw_token: participant_token)
+    remember_room_invitation!(room:, raw_token: invite_token)
 
     redirect_to room_path(room.slug, invite_token: invite_token)
   end
@@ -87,7 +91,7 @@ class RoomsController < ApplicationController
 
     remember_room_participant!(room: @room, raw_token: participant_token)
 
-    invitation.update!(used_at: Time.current)
+    invitation.update!(used_at: Time.current, revoked_at: Time.current)
     @room.activate! if @room.room_participants.count == @room.max_participants
 
     redirect_to room_path(@room.slug)
@@ -152,6 +156,10 @@ class RoomsController < ApplicationController
 
     participant = room_participant_for_token(@room, raw_token)
     return unless participant.present?
+    if ParticipantPresenceRegistry.active_elsewhere?(room: @room, participant:, client_instance_id: current_client_instance_id)
+      flash.now[:alert] = "This bookmark is already active in another browser."
+      return
+    end
 
     remember_room_participant!(room: @room, raw_token: raw_token)
     participant
@@ -190,5 +198,24 @@ class RoomsController < ApplicationController
 
   def invite_token_present?
     params[:invite_token].present?
+  end
+
+  def share_invite_url_for(room, participant)
+    return unless participant&.creator?
+    unless room.waiting?
+      forget_room_invitation!(room: room)
+      return
+    end
+
+    raw_token = room_invitation_token_for(room)
+    return unless raw_token.present?
+
+    invitation = room.room_invitations.find_by(token_digest: TokenDigest.hexdigest(raw_token))
+    if invitation.blank? || invitation.revoked_at.present? || invitation.expires_at&.past?
+      forget_room_invitation!(room: room)
+      return
+    end
+
+    room_url(room, invite_token: raw_token)
   end
 end
