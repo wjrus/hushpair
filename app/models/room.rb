@@ -62,7 +62,7 @@ class Room < ApplicationRecord
   end
 
   def expire_if_needed!(now: Time.current)
-    return if ended? || expired? || expires_at.future?
+    return unless should_expire?(now)
 
     update!(status: :expired)
   end
@@ -89,13 +89,9 @@ class Room < ApplicationRecord
   end
 
   def extend_lifetime!(at: Time.current)
-    return if ended? || expired?
+    return if closed?
 
-    target_expires_at = if active?
-      [ at + ACTIVE_LIFETIME, created_at + ACTIVE_LIFETIME_CAP ].min
-    else
-      self.class.waiting_expiration_from(at)
-    end
+    target_expires_at = lifetime_extension_target(at)
 
     return unless target_expires_at > expires_at
 
@@ -111,15 +107,12 @@ class Room < ApplicationRecord
   end
 
   def expiry_summary(now: Time.current)
-    expire_if_needed!(now: now) if expires_at.present? && expires_at <= now && !closed?
+    expire_if_needed!(now: now)
 
-    if expired?
-      "Expired"
-    elsif ended?
-      "Ended"
-    else
-      "Expires #{ActionController::Base.helpers.time_ago_in_words(expires_at)} from now"
-    end
+    return "Expired" if expired?
+    return "Ended" if ended?
+
+    "Expires #{ActionController::Base.helpers.time_ago_in_words(expires_at)} from now"
   end
 
   def enforce_message_retention!(now: Time.current)
@@ -136,15 +129,29 @@ class Room < ApplicationRecord
   def retention_summary
     case message_retention_mode
     when "line_count"
-      "Keep the last #{message_retention_line_limit} messages"
+      line_count_retention_summary
     when "time_window"
-      "Keep messages for #{message_retention_hours} hours"
+      time_window_retention_summary
     else
-      "Keep messages until room expiry"
+      forever_retention_summary
     end
   end
 
   private
+
+  def should_expire?(now)
+    !closed? && expires_at.present? && expires_at <= now
+  end
+
+  def lifetime_extension_target(at)
+    return self.class.waiting_expiration_from(at) unless active?
+
+    [ at + ACTIVE_LIFETIME, lifetime_cap ].min
+  end
+
+  def lifetime_cap
+    created_at + ACTIVE_LIFETIME_CAP
+  end
 
   def ensure_public_id
     self.public_id ||= SecureRandom.uuid
@@ -170,5 +177,17 @@ class Room < ApplicationRecord
   def trim_to_time_window!(now: Time.current)
     cutoff = now - message_retention_hours.hours
     messages.where(created_at: ...cutoff).delete_all
+  end
+
+  def line_count_retention_summary
+    "Keep the last #{message_retention_line_limit} messages"
+  end
+
+  def time_window_retention_summary
+    "Keep messages for #{message_retention_hours} hours"
+  end
+
+  def forever_retention_summary
+    "Keep messages until room expiry"
   end
 end
