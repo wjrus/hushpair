@@ -59,15 +59,15 @@
           <% if participant.creator? %>
             <%= form_with url: retention_room_path(room), method: :patch, class: "toolbar-retention-form" do |form| %>
               <%= form.select :message_retention_mode, options_for_select(retention_options, room.message_retention_mode), {}, class: "select-input toolbar-input", data: { chat_retention_mode_select: true } %>
-              <div class="retention-inline-group retention-detail-group" data-retention-detail="line_count">
+              <div class="retention-inline-group retention-detail-group <%= "is-hidden" unless room.line_count? %>" data-retention-detail="line_count">
                 <%= form.number_field :message_retention_line_limit, min: 10, max: 10000, step: 10, class: "toolbar-input toolbar-input-small", placeholder: "250" %>
                 <span class="toolbar-unit">messages</span>
               </div>
-              <div class="retention-inline-group retention-detail-group" data-retention-detail="time_window">
+              <div class="retention-inline-group retention-detail-group <%= "is-hidden" unless room.time_window? %>" data-retention-detail="time_window">
                 <%= form.number_field :message_retention_hours, min: 1, max: 720, step: 1, class: "toolbar-input toolbar-input-small", placeholder: "24" %>
                 <span class="toolbar-unit">hours</span>
               </div>
-              <span class="toolbar-unit retention-detail-group" data-retention-detail="forever">room expiry</span>
+              <span class="toolbar-unit retention-detail-group <%= "is-hidden" unless room.forever? %>" data-retention-detail="forever">room expiry</span>
               <% if params[:participant_token].present? %>
                 <%= hidden_field_tag :participant_token, params[:participant_token] %>
               <% end %>

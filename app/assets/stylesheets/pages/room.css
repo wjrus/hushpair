@@ -514,6 +514,7 @@
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
     width: 100%;
+    gap: 0.45rem;
   }
 
   .toolbar-retention-form > * {
@@ -529,20 +530,33 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+    gap: 0.45rem;
   }
 
   .chat-header {
-    align-items: center;
+    position: relative;
+    align-items: start;
   }
 
   .chat-header__main {
     flex-direction: column;
     align-items: stretch;
+    padding-right: 2.9rem;
   }
 
   .chat-header__link-bar {
     max-width: none;
     margin-left: 0;
+  }
+
+  .chat-menu {
+    position: static;
+  }
+
+  .chat-menu__trigger {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.75rem;
   }
 
   .chat-card {
@@ -560,8 +574,8 @@
   }
 
   .chat-menu__panel {
-    position: fixed;
-    top: 6.25rem;
+    position: absolute;
+    top: calc(100% + 0.45rem);
     right: 0.75rem;
     left: 0.75rem;
     width: auto;
