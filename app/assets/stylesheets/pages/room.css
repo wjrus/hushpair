@@ -417,9 +417,13 @@
   place-items: center;
   margin: 0;
   padding: 0.75rem;
+  width: 100%;
+  max-width: 100%;
   color: var(--muted);
   font-size: 1rem;
   text-align: center;
+  white-space: normal;
+  word-break: break-word;
   pointer-events: none;
 }
 
@@ -506,9 +510,25 @@
   }
 
   .toolbar-retention-form {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
+    width: 100%;
+  }
+
+  .toolbar-retention-form > * {
+    min-width: 0;
+  }
+
+  .toolbar-retention-form .toolbar-input,
+  .toolbar-retention-form .button {
+    width: 100%;
+  }
+
+  .toolbar-retention-form .retention-inline-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
   }
 
   .chat-header {
@@ -540,8 +560,12 @@
   }
 
   .chat-menu__panel {
-    right: -0.1rem;
-    left: auto;
-    width: min(24rem, calc(100vw - 1.5rem));
+    position: fixed;
+    top: 6.25rem;
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+    max-width: none;
+    overflow-x: hidden;
   }
 }
