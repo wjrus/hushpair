@@ -1,6 +1,11 @@
 module AnonymousSessionSupport
   extend ActiveSupport::Concern
 
+  SESSION_TOKEN_HEADER = "X-Session-Token".freeze
+  PARTICIPANT_TOKEN_HEADER = "X-Participant-Token".freeze
+  SESSION_COOKIE = :hushpair_session_token
+  CLIENT_INSTANCE_COOKIE = :hushpair_client_instance_id
+
   included do
     helper_method :current_anonymous_session if respond_to?(:helper_method)
     helper_method :current_client_instance_id if respond_to?(:helper_method)
@@ -9,19 +14,19 @@ module AnonymousSessionSupport
   private
 
   def current_client_instance_id
-    cookies.encrypted[:hushpair_client_instance_id]
+    encrypted_cookie(CLIENT_INSTANCE_COOKIE)
   end
 
   def ensure_client_instance_id!
     return if current_client_instance_id.present?
 
-    cookies.encrypted[:hushpair_client_instance_id] = token_cookie_options(TokenDigest.generate(16))
+    write_encrypted_cookie(CLIENT_INSTANCE_COOKIE, TokenDigest.generate(16))
   end
 
   def current_anonymous_session
     return @current_anonymous_session if defined?(@current_anonymous_session)
 
-    token = request.headers["X-Session-Token"].presence || cookies.encrypted[:hushpair_session_token]
+    token = token_from_header_or_cookie(SESSION_TOKEN_HEADER, SESSION_COOKIE)
     @current_anonymous_session = AnonymousSession.find_by(session_token_digest: TokenDigest.hexdigest(token)) if token.present?
   end
 
@@ -41,8 +46,8 @@ module AnonymousSessionSupport
       user_agent_hash: fingerprint(request.user_agent)
     )
 
-    cookies.encrypted[:hushpair_session_token] = token_cookie_options(raw_token)
-    response.set_header("X-Session-Token", raw_token)
+    write_encrypted_cookie(SESSION_COOKIE, raw_token)
+    response.set_header(SESSION_TOKEN_HEADER, raw_token)
 
     @current_anonymous_session
   end
@@ -50,28 +55,28 @@ module AnonymousSessionSupport
   def current_room_participant_for(room)
     return unless room.accessible?
 
-    token = request.headers["X-Participant-Token"].presence || cookies.encrypted[participant_cookie_name(room)]
+    token = token_from_header_or_cookie(PARTICIPANT_TOKEN_HEADER, participant_cookie_name(room))
     return unless token.present?
 
     room_participant_for_token(room, token)
   end
 
   def remember_room_participant!(room:, raw_token:)
-    cookies.encrypted[participant_cookie_name(room)] = token_cookie_options(raw_token)
-    response.set_header("X-Participant-Token", raw_token)
+    write_encrypted_cookie(participant_cookie_name(room), raw_token)
+    response.set_header(PARTICIPANT_TOKEN_HEADER, raw_token)
   end
 
   def remember_room_invitation!(room:, raw_token:)
-    cookies.encrypted[invitation_cookie_name(room)] = token_cookie_options(raw_token)
+    write_encrypted_cookie(invitation_cookie_name(room), raw_token)
   end
 
   def forget_room_participant!(room:)
-    cookies.delete(participant_cookie_name(room))
-    response.delete_header("X-Participant-Token")
+    delete_cookie(participant_cookie_name(room))
+    response.delete_header(PARTICIPANT_TOKEN_HEADER)
   end
 
   def forget_room_invitation!(room:)
-    cookies.delete(invitation_cookie_name(room))
+    delete_cookie(invitation_cookie_name(room))
   end
 
   def room_participant_for_token(room, raw_token)
@@ -84,13 +89,13 @@ module AnonymousSessionSupport
   def participant_return_token_for(room)
     return unless room.accessible?
 
-    cookies.encrypted[participant_cookie_name(room)]
+    encrypted_cookie(participant_cookie_name(room))
   end
 
   def room_invitation_token_for(room)
     return unless room.accessible?
 
-    cookies.encrypted[invitation_cookie_name(room)]
+    encrypted_cookie(invitation_cookie_name(room))
   end
 
   def fingerprint(value)
@@ -106,6 +111,22 @@ module AnonymousSessionSupport
       same_site: :lax,
       secure: Rails.env.production?
     }
+  end
+
+  def token_from_header_or_cookie(header_name, cookie_name)
+    request.headers[header_name].presence || encrypted_cookie(cookie_name)
+  end
+
+  def encrypted_cookie(name)
+    cookies.encrypted[name]
+  end
+
+  def write_encrypted_cookie(name, raw_token)
+    cookies.encrypted[name] = token_cookie_options(raw_token)
+  end
+
+  def delete_cookie(name)
+    cookies.delete(name)
   end
 
   def participant_cookie_name(room)
