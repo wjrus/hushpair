@@ -1,0 +1,18 @@
+<form class="chat-composer" id="chat-form">
+  <div class="composer-footer">
+    <label class="sr-only" for="chat-body">Message</label>
+    <textarea
+      id="chat-body"
+      name="body"
+      rows="1"
+      maxlength="2000"
+      placeholder="Message"
+      aria-describedby="chat-feedback"
+      <%= "disabled" unless chat_open %>
+    ></textarea>
+    <button class="button chat-send" type="submit" <%= "disabled" unless chat_open %>>Send</button>
+  </div>
+  <p class="form-note <%= "is-hidden" if chat_open %>" id="chat-feedback" role="status" aria-live="polite">
+    <%= chat_open ? "" : "This room is no longer accepting new messages." %>
+  </p>
+</form>

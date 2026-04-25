@@ -1,5 +1,5 @@
 class RoomsController < ApplicationController
-  before_action :set_room, only: [ :show, :join, :update_retention, :leave, :end_chat, :report ]
+  before_action :set_room, only: [ :show, :join, :update_retention, :leave, :report ]
 
   def show
     @room.expire_if_needed!
@@ -121,31 +121,7 @@ class RoomsController < ApplicationController
 
     @room.leave!(participant:)
     forget_room_participant!(room: @room)
-
-    RoomChannel.broadcast_to(@room, type: "room.updated", room: {
-      status: @room.status,
-      expires_at: @room.expires_at&.iso8601,
-      expiry_summary: @room.expiry_summary
-    })
-
-    redirect_to root_path, notice: "Chat ended."
-  end
-
-  def end_chat
-    participant = restore_participant_from_params || current_room_participant_for(@room)
-    unless participant.present?
-      redirect_to room_path(@room.slug), alert: "You are not currently in this chat."
-      return
-    end
-
-    @room.end_chat!(participant:)
-    forget_room_participant!(room: @room)
-
-    RoomChannel.broadcast_to(@room, type: "room.updated", room: {
-      status: @room.status,
-      expires_at: @room.expires_at&.iso8601,
-      expiry_summary: @room.expiry_summary
-    })
+    broadcast_room_update!(@room)
 
     redirect_to root_path, notice: "Chat ended."
   end
@@ -167,12 +143,7 @@ class RoomsController < ApplicationController
 
     @room.leave!(participant:)
     forget_room_participant!(room: @room)
-
-    RoomChannel.broadcast_to(@room, type: "room.updated", room: {
-      status: @room.status,
-      expires_at: @room.expires_at&.iso8601,
-      expiry_summary: @room.expiry_summary
-    })
+    broadcast_room_update!(@room)
 
     redirect_to root_path, notice: "Thanks. The chat was reported and ended."
   end
@@ -267,5 +238,13 @@ class RoomsController < ApplicationController
   def report_reason
     reason = params[:reason].presence_in(%w[harassment spam hate self-harm other])
     reason || "other"
+  end
+
+  def broadcast_room_update!(room)
+    RoomChannel.broadcast_to(room, type: "room.updated", room: {
+      status: room.status,
+      expires_at: room.expires_at&.iso8601,
+      expiry_summary: room.expiry_summary
+    })
   end
 end

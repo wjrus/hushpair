@@ -1,0 +1,23 @@
+<section class="card utility-card invite-preview-card">
+  <p class="eyebrow">Private Invite</p>
+  <h1>You've been invited to <%= room_display_name %>.</h1>
+  <p class="lede">From <strong><%= creator_display_name %></strong></p>
+
+  <div class="invite-preview-grid">
+    <div class="invite-preview-item">
+      <span class="toolbar-label">Retention</span>
+      <span class="settings-pill"><%= room.retention_summary %></span>
+    </div>
+    <div class="invite-preview-item">
+      <span class="toolbar-label">Lifetime</span>
+      <span class="settings-pill"><%= room_expiry_summary %></span>
+    </div>
+  </div>
+
+  <%= form_with url: join_room_path(room), method: :post, class: "stack invite-preview-form" do |form| %>
+    <%= hidden_field_tag :invite_token, params[:invite_token] %>
+    <%= form.label :nickname, "Nickname (optional)" %>
+    <%= form.text_field :nickname, maxlength: 40, placeholder: "Night Owl" %>
+    <%= form.submit "Join chat", class: "button" %>
+  <% end %>
+</section>

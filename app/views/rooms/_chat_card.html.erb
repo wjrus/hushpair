@@ -1,0 +1,30 @@
+<section
+  class="card chat-card"
+  data-chat-room-public-id="<%= room.public_id %>"
+  data-chat-room-status="<%= room.status %>"
+  data-chat-room-show-url="<%= api_v1_room_path(room.public_id) %>"
+  data-chat-messages-url="<%= api_v1_room_messages_path(room.public_id) %>"
+  data-chat-nickname="<%= participant.nickname.presence || "Anonymous" %>"
+  data-chat-participant-id="<%= participant.id %>"
+  data-chat-open="<%= chat_open %>"
+  data-chat-last-seq="<%= messages.last&.sequence_number || 0 %>"
+  data-chat-room-expires-at="<%= room.expires_at&.iso8601 %>"
+  data-chat-participant-token="<%= participant_return_token %>"
+  data-chat-presence-url="<%= api_v1_room_presence_path(room.public_id) %>"
+  data-chat-client-instance-id="<%= current_client_instance_id %>"
+  data-chat-share-url="<%= share_invite_url %>"
+  data-chat-bookmark-url="<%= participant_return_url %>"
+  data-chat-role="<%= participant.role %>"
+>
+  <%= render "chat_header",
+    room: room,
+    participant: participant,
+    share_invite_url: share_invite_url,
+    participant_return_url: participant_return_url,
+    participant_return_token: participant_return_token,
+    room_expiry_summary: room_expiry_summary,
+    retention_options: retention_options %>
+
+  <%= render "transcript", messages: messages, participant: participant %>
+  <%= render "composer", chat_open: chat_open %>
+</section>

@@ -1,0 +1,16 @@
+<% if room.expired? && participant.blank? %>
+  <section class="card utility-card">
+    <h2>Room expired</h2>
+    <p class="compact-lede">This room is no longer available.</p>
+  </section>
+<% elsif presence_conflict %>
+  <section class="card utility-card">
+    <h2>Bookmark already active</h2>
+    <p class="compact-lede">This bookmark is already open in another browser. Close that session or wait a minute before trying again.</p>
+  </section>
+<% elsif bookmark_restricted %>
+  <section class="card utility-card">
+    <h2>Bookmark limited to this browser</h2>
+    <p class="compact-lede">For safety, bookmark links only reopen chats in the browser that originally joined the room.</p>
+  </section>
+<% end %>

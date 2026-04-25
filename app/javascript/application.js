@@ -1,4 +1,5 @@
 // Importmap entrypoint for lightweight client-side behavior.
+import { installRoomChat } from "room_chat"
 
 const THEME_STORAGE_KEY = "hushpair-theme"
 
@@ -38,5 +39,10 @@ const installThemeToggle = () => {
   themeToggleInstalled = true
 }
 
-document.addEventListener("turbo:load", installThemeToggle)
-document.addEventListener("DOMContentLoaded", installThemeToggle)
+const installAppUi = () => {
+  installThemeToggle()
+  installRoomChat()
+}
+
+document.addEventListener("turbo:load", installAppUi)
+document.addEventListener("DOMContentLoaded", installAppUi)
