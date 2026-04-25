@@ -1,0 +1,21 @@
+<% content_for :title, "Admin | hushpair" %>
+
+<main id="main-content" class="shell shell--admin">
+  <section class="admin-login">
+    <div class="admin-login__card">
+      <p class="eyebrow">Admin</p>
+      <h1>Restricted admin panel</h1>
+      <p class="lede">Sign in with the allowed Google account to view aggregate room, message, and moderation statistics.</p>
+
+      <% if ENV["GOOGLE_OAUTH_CLIENT_ID"].blank? || ENV["GOOGLE_OAUTH_CLIENT_SECRET"].blank? %>
+        <p class="admin-login__warning">Google OAuth is not configured yet. Add `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET`, then redeploy.</p>
+      <% else %>
+        <%= button_to "/auth/google_oauth2", method: :post, class: "button", form: { data: { turbo: false } } do %>
+          Continue with Google
+        <% end %>
+      <% end %>
+
+      <p class="admin-login__meta">Allowed account: <code><%= ENV.fetch("ADMIN_USER", "wjr@wjr.us") %></code></p>
+    </div>
+  </section>
+</main>

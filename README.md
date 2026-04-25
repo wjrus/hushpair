@@ -95,6 +95,19 @@ Recommended:
 - `HUSHPAIR_FORCE_SSL=true`
 - `RAILS_LOG_LEVEL=info`
 - `HUSHPAIR_RELEASE`
+- `GOOGLE_OAUTH_CLIENT_ID`
+- `GOOGLE_OAUTH_CLIENT_SECRET`
+- `ADMIN_USER=wjr@wjr.us`
+
+## Admin dashboard
+
+The private admin dashboard lives at `/wjr`.
+
+- Google OAuth callback URI: `https://hushpair.com/auth/google_oauth2/callback`
+- Allowed admin account defaults to `wjr@wjr.us`
+- Override the allowed account with `ADMIN_USER`
+
+The dashboard is intentionally aggregate-only: room counts, message volume, moderation activity, and currently open room breakdowns. It does not expose message contents, nicknames, or participant identifiers.
 
 ## Deploy shape
 

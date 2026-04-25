@@ -26,6 +26,9 @@ gem "solid_cache"
 gem "solid_queue"
 gem "redis", ">= 5.0"
 gem "rack-attack"
+gem "omniauth"
+gem "omniauth-google-oauth2"
+gem "omniauth-rails_csrf_protection"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false

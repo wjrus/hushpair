@@ -1,0 +1,92 @@
+<% content_for :title, "Admin | hushpair" %>
+
+<main id="main-content" class="shell shell--admin">
+  <section class="admin-topbar">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>System dashboard</h1>
+      <p class="lede"><%= @metrics.range_label %> · signed in as <%= current_admin_email %></p>
+    </div>
+    <div class="admin-topbar__actions">
+      <%= link_to "Open app", root_path, class: "button button-subtle" %>
+      <%= button_to "Sign out", admin_logout_path, method: :delete, class: "button button-subtle" %>
+    </div>
+  </section>
+
+  <section class="admin-range">
+    <div class="admin-range__presets" role="tablist" aria-label="Dashboard time range presets">
+      <% @metrics.preset_options.each do |key, label| %>
+        <% active = @metrics.preset_key == key %>
+        <%= link_to label, admin_dashboard_path(preset: key), class: ["admin-chip", ("admin-chip--active" if active)].compact.join(" "), aria: { current: (active ? "page" : nil) } %>
+      <% end %>
+    </div>
+
+    <%= form_with url: admin_dashboard_path, method: :get, local: true, class: "admin-range__form" do |form| %>
+      <label>
+        <span>Start</span>
+        <%= form.date_field :start_date, value: @metrics.start_date_value %>
+      </label>
+      <label>
+        <span>End</span>
+        <%= form.date_field :end_date, value: @metrics.end_date_value %>
+      </label>
+      <%= form.submit "Apply", class: "button" %>
+    <% end %>
+  </section>
+
+  <section class="admin-stats-grid">
+    <% @metrics.summary_cards.each do |card| %>
+      <article class="admin-stat-card admin-stat-card--<%= card[:tone] %>">
+        <p class="admin-stat-card__label"><%= card[:label] %></p>
+        <p class="admin-stat-card__value"><%= number_with_delimiter(card[:value]) %></p>
+      </article>
+    <% end %>
+  </section>
+
+  <section class="admin-live-grid">
+    <article class="admin-panel">
+      <div class="admin-panel__header">
+        <div>
+          <h2>Currently active rooms</h2>
+          <p>Open room snapshot right now.</p>
+        </div>
+      </div>
+
+      <% snapshot = @metrics.active_room_snapshot %>
+      <div class="admin-room-snapshot">
+        <div class="admin-room-snapshot__bar" aria-hidden="true">
+          <% total_rooms = [snapshot[:waiting] + snapshot[:active], 1].max %>
+          <span class="admin-room-snapshot__waiting" style="width: <%= (snapshot[:waiting].to_f / total_rooms * 100).round(1) %>%"></span>
+          <span class="admin-room-snapshot__active" style="width: <%= (snapshot[:active].to_f / total_rooms * 100).round(1) %>%"></span>
+        </div>
+        <div class="admin-room-snapshot__legend">
+          <p><strong><%= snapshot[:waiting] %></strong> waiting</p>
+          <p><strong><%= snapshot[:active] %></strong> active</p>
+        </div>
+      </div>
+    </article>
+
+    <section class="admin-stats-grid admin-stats-grid--compact">
+      <% @metrics.current_summary.each do |card| %>
+        <article class="admin-stat-card admin-stat-card--<%= card[:tone] %>">
+          <p class="admin-stat-card__label"><%= card[:label] %></p>
+          <p class="admin-stat-card__value"><%= number_with_delimiter(card[:value]) %></p>
+        </article>
+      <% end %>
+    </section>
+  </section>
+
+  <section class="admin-charts-grid">
+    <% @metrics.charts.each do |chart| %>
+      <article class="admin-panel">
+        <div class="admin-panel__header">
+          <div>
+            <h2><%= chart[:title] %></h2>
+            <p><%= chart[:subtitle] %></p>
+          </div>
+        </div>
+        <%= admin_chart_svg(chart[:series], tone: chart[:tone]) %>
+      </article>
+    <% end %>
+  </section>
+</main>

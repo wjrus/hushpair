@@ -5,6 +5,10 @@ Rails.application.routes.draw do
   get "about", to: "pages#about"
   get "privacy", to: "pages#privacy"
   get "terms", to: "pages#terms"
+  get "wjr", to: "admin/dashboard#show", as: :admin_dashboard
+  delete "wjr/logout", to: "admin/sessions#destroy", as: :admin_logout
+  match "auth/google_oauth2/callback", to: "admin/sessions#create", via: [ :get, :post ]
+  match "auth/failure", to: "admin/sessions#failure", via: [ :get, :post ]
 
   resources :rooms, only: [ :create, :show ], param: :slug do
     post :join, on: :member
