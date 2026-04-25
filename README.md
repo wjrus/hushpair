@@ -128,3 +128,11 @@ For production Docker deploys, stamp the current commit into `.env` before you b
 ```
 
 That updates `HUSHPAIR_RELEASE` so the footer can show the deployed build identifier.
+
+For the current single-host deploy flow, you can also run:
+
+```sh
+./script/deploy
+```
+
+That helper does the standard pull/build/restart/log/health-check sequence and includes a short pause before the final `/up` check.

@@ -163,6 +163,13 @@ docker-compose build web
 docker-compose up -d web
 ```
 
+Or use the repo helper:
+
+```sh
+cd /home/wjr/apps/hushpair
+./script/deploy
+```
+
 If dependencies or config changed more broadly:
 
 ```sh
