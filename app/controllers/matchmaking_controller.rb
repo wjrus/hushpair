@@ -7,6 +7,7 @@ class MatchmakingController < ApplicationController
 
     @queue_entry.expire_if_needed!
     @queue_entry = renew_queue_entry! if @queue_entry.expired?
+    @queue_entry = retry_queued_match! if @queue_entry.queued?
 
     if matched_room = matched_room_for(@queue_entry)
       return respond_to_matched_room(matched_room)
@@ -60,6 +61,16 @@ class MatchmakingController < ApplicationController
     return result.queue_entry if result.queued?
 
     @renewed_matched_room = result.room
+    result.queue_entry
+  end
+
+  def retry_queued_match!
+    result = Matchmaking::JoinQueue.call(
+      session: current_anonymous_session,
+      nickname: current_anonymous_session.current_nickname
+    )
+
+    @renewed_matched_room = result.room if result.matched?
     result.queue_entry
   end
 

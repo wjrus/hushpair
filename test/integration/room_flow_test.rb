@@ -278,6 +278,53 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_not payload.key?("queue_size")
   end
 
+  test "matching status poll retries queued matches after cooldown is cleared" do
+    first_token = TokenDigest.generate
+    second_token = TokenDigest.generate
+    first_session = AnonymousSession.create!(
+      current_nickname: "Quiet Fox",
+      last_seen_at: Time.current,
+      session_token_digest: TokenDigest.hexdigest(first_token)
+    )
+    second_session = AnonymousSession.create!(
+      current_nickname: "Night Owl",
+      last_seen_at: Time.current,
+      session_token_digest: TokenDigest.hexdigest(second_token)
+    )
+    old_room = Room.create!(
+      expires_at: 1.minute.ago,
+      last_message_at: 1.hour.ago,
+      max_participants: 2,
+      mode: :random_match,
+      status: :ended
+    )
+    MatchPair.record!(room: old_room, first_session:, second_session:)
+    MatchQueueEntry.create!(
+      anonymous_session: first_session,
+      queued_at: 1.minute.ago,
+      expires_at: 10.minutes.from_now
+    )
+    MatchQueueEntry.create!(
+      anonymous_session: second_session,
+      queued_at: 1.minute.ago,
+      expires_at: 10.minutes.from_now
+    )
+
+    get match_path(format: :json), headers: { AnonymousSessionSupport::SESSION_TOKEN_HEADER => first_token }, as: :json
+
+    assert_equal 200, response.status
+    assert_equal "queued", JSON.parse(response.body).fetch("status")
+
+    MatchPair.delete_all
+
+    get match_path(format: :json), headers: { AnonymousSessionSupport::SESSION_TOKEN_HEADER => first_token }, as: :json
+
+    assert_equal 200, response.status
+    payload = JSON.parse(response.body)
+    assert_equal "matched", payload.fetch("status")
+    assert_match %r{\A/rooms/}, payload.fetch("room_url")
+  end
+
   test "expired matching search renews instead of returning home" do
     seeker = open_session
     seeker.post match_path, params: { nickname: "Quiet Fox" }
