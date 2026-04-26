@@ -126,9 +126,17 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     creator.get root_path
 
     assert_equal 200, creator.response.status
-    assert_match "Experimental beta", creator.response.body
+    assert_match "Chats are always temporary", creator.response.body
     assert_match "Your open rooms", creator.response.body
     assert_match "Open", creator.response.body
+  end
+
+  test "about page describes private rooms and anonymous matching" do
+    get about_path
+
+    assert_equal 200, response.status
+    assert_match "Private rooms", response.body
+    assert_match "Anonymous matching", response.body
   end
 
   test "home page keeps queued match action in the match card action area" do
