@@ -79,7 +79,8 @@ module Matchmaking
         last_message_at: @now,
         max_participants: 2,
         mode: :random_match,
-        status: :active
+        status: :active,
+        **Room.match_retention_attributes
       )
     end
 

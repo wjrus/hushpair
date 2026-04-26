@@ -39,6 +39,12 @@ textarea {
   line-height: 1.35;
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.82;
+}
+
 textarea.is-scrollable {
   overflow-y: auto;
 }

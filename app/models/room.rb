@@ -153,7 +153,27 @@ class Room < ApplicationRecord
     new.retention_short_summary
   end
 
+  def self.match_retention_attributes
+    {
+      message_retention_mode: safe_match_retention_mode,
+      message_retention_line_limit: bounded_env_integer("HUSHPAIR_MATCH_MESSAGE_RETENTION_LINE_LIMIT", default: 250, min: 10, max: 10_000),
+      message_retention_hours: bounded_env_integer("HUSHPAIR_MATCH_MESSAGE_RETENTION_HOURS", default: 24, min: 1, max: 24 * 30)
+    }
+  end
+
   private
+
+  def self.safe_match_retention_mode
+    mode = ENV.fetch("HUSHPAIR_MATCH_MESSAGE_RETENTION_MODE", "line_count")
+    message_retention_modes.key?(mode) ? mode : "line_count"
+  end
+
+  def self.bounded_env_integer(name, default:, min:, max:)
+    value = Integer(ENV.fetch(name, default), exception: false) || default
+    value.clamp(min, max)
+  end
+
+  private_class_method :safe_match_retention_mode, :bounded_env_integer
 
   def should_expire?(now)
     !closed? && expires_at.present? && expires_at <= now

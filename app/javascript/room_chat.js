@@ -31,6 +31,7 @@ const initRoomChat = (root) => {
   const copyButtons = root.querySelectorAll(".button-copy")
   const chatMenu = root.querySelector("[data-chat-menu]")
   const chatMenuTrigger = root.querySelector("[data-chat-menu-trigger]")
+  const reportDisclosures = root.querySelectorAll(".report-disclosure")
   const confirmDialog = root.querySelector("[data-chat-confirm-dialog]")
   const confirmMessage = root.querySelector("[data-chat-confirm-message]")
   const participantToken = root.dataset.chatParticipantToken
@@ -304,6 +305,15 @@ const initRoomChat = (root) => {
     if (chatMenu.contains(event.target)) return
 
     chatMenu.open = false
+  })
+
+  document.addEventListener("click", (event) => {
+    reportDisclosures.forEach((reportDisclosure) => {
+      if (!reportDisclosure.open) return
+      if (reportDisclosure.contains(event.target)) return
+
+      reportDisclosure.open = false
+    })
   })
 
   copyButtons.forEach((button) => {

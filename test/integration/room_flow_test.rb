@@ -242,7 +242,9 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Report", first.response.body
     assert_match "Next", first.response.body
     assert_match "End chat", first.response.body
-    assert_match "Chat details", first.response.body
+    assert_no_match "Chat details", first.response.body
+    assert_no_match "Message Retention", first.response.body
+    assert_no_match "Lifetime", first.response.body
   end
 
   test "matching status endpoint returns matched room url for waiting browser" do

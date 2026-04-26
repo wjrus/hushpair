@@ -40,14 +40,4 @@
     <%= render "transcript", messages: messages, participant: participant %>
     <%= render "composer", chat_open: chat_open %>
   </div>
-
-  <% if room.random_match? %>
-    <aside class="card chat-details-card" aria-label="Chat details">
-      <%= render "chat_details",
-        room: room,
-        participant: participant,
-        room_expiry_summary: room_expiry_summary,
-        retention_options: retention_options %>
-    </aside>
-  <% end %>
 </section>
