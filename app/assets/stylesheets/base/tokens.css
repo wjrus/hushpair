@@ -29,6 +29,9 @@
   --shadow-soft: 0 6px 18px rgba(11, 19, 43, 0.05);
   --shadow-strong: 0 16px 40px rgba(11, 19, 43, 0.12);
   --focus-ring: #4da6a6;
+  --radius-control: 4px;
+  --radius-surface: 6px;
+  --radius-pill: 999px;
   --font-ui: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 

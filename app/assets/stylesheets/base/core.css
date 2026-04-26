@@ -19,7 +19,7 @@ body {
   top: -3rem;
   z-index: 40;
   padding: 0.65rem 0.85rem;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   background: var(--accent);
   color: var(--accent-ink);
   text-decoration: none;
@@ -44,7 +44,7 @@ body {
 .card {
   background: color-mix(in srgb, var(--panel) 96%, transparent);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: var(--radius-surface);
   padding: 0.75rem;
   box-shadow: var(--shadow-soft);
 }
