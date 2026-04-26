@@ -30,7 +30,7 @@
     <header class="site-header">
       <div class="site-header__inner">
         <%= link_to root_path, class: "brandmark", aria: { label: "hushpair home" } do %>
-          <%= image_tag "hushpair-logo.svg", alt: "hushpair", class: "brandmark__logo" %>
+          <%= render "shared/brand_logo" %>
         <% end %>
 
         <label class="theme-picker" aria-label="Theme">
@@ -58,10 +58,6 @@
 
     <footer class="site-footer">
       <div class="site-footer__inner">
-        <p class="site-footer__brand">
-          <%= image_tag "hushpair-mark.svg", alt: "", aria: { hidden: true }, class: "site-footer__mark" %>
-          <span>hushpair</span>
-        </p>
         <div class="site-footer__meta">
           <p class="site-footer__links">
             <%= link_to "Privacy Policy", privacy_path %>

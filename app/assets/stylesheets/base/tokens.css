@@ -21,6 +21,9 @@
   --header-bg: rgba(247, 245, 239, 0.92);
   --header-border: rgba(216, 221, 214, 0.98);
   --header-button-bg: rgba(255, 253, 250, 0.94);
+  --logo-primary: #0b132b;
+  --logo-secondary: #4da6a6;
+  --logo-overlap: #081127;
   --menu-bg: rgba(255, 253, 250, 0.98);
   --help-bg: rgba(255, 253, 250, 0.99);
   --chat-bg: linear-gradient(180deg, #fffdfa, #f8f6f0);
@@ -58,6 +61,9 @@
   --header-bg: rgba(7, 16, 29, 0.9);
   --header-border: rgba(34, 53, 74, 0.98);
   --header-button-bg: rgba(13, 23, 38, 0.96);
+  --logo-primary: #eef3f7;
+  --logo-secondary: #7ec8c8;
+  --logo-overlap: #07101d;
   --menu-bg: rgba(13, 23, 38, 0.98);
   --help-bg: rgba(17, 29, 47, 0.99);
   --chat-bg: linear-gradient(180deg, #0d1726, #09111d);
@@ -91,6 +97,9 @@
   --header-bg: rgba(0, 0, 0, 0.94);
   --header-border: rgba(22, 128, 61, 0.98);
   --header-button-bg: #030603;
+  --logo-primary: #39ff88;
+  --logo-secondary: #8bd8aa;
+  --logo-overlap: #000000;
   --menu-bg: rgba(3, 6, 3, 0.99);
   --help-bg: rgba(3, 12, 3, 0.99);
   --chat-bg: linear-gradient(180deg, #000000, #020902);
@@ -125,6 +134,9 @@
   --header-bg: rgba(16, 8, 0, 0.94);
   --header-border: rgba(124, 74, 18, 0.96);
   --header-button-bg: #1a0d02;
+  --logo-primary: #ffd27a;
+  --logo-secondary: #d8aa62;
+  --logo-overlap: #100800;
   --menu-bg: rgba(26, 13, 2, 0.98);
   --help-bg: rgba(33, 17, 3, 0.99);
   --chat-bg: linear-gradient(180deg, #140a01, #100800);
@@ -159,6 +171,9 @@
   --header-bg: rgba(251, 248, 237, 0.94);
   --header-border: rgba(216, 207, 186, 0.98);
   --header-button-bg: #fffdf6;
+  --logo-primary: #1f2731;
+  --logo-secondary: #2d6c68;
+  --logo-overlap: #172323;
   --menu-bg: rgba(255, 253, 246, 0.99);
   --help-bg: rgba(255, 253, 246, 0.99);
   --chat-bg: linear-gradient(180deg, #fffdf6, #fbf8ed);

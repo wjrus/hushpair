@@ -28,10 +28,31 @@
   align-items: center;
 }
 
-.brandmark__logo {
+.brand-logo {
   display: block;
   height: 2rem;
   width: auto;
+  color: var(--logo-primary);
+}
+
+.brand-logo__primary {
+  fill: var(--logo-primary);
+}
+
+.brand-logo__secondary {
+  fill: var(--logo-secondary);
+}
+
+.brand-logo__overlap {
+  fill: var(--logo-overlap);
+  fill-opacity: 0.82;
+}
+
+.brand-logo__wordmark {
+  fill: currentcolor;
+  font-family: "Iowan Old Style", "Baskerville", "Libre Baskerville", Georgia, serif;
+  font-size: 124px;
+  letter-spacing: -0.03em;
 }
 
 .brandmark__domain,
@@ -117,7 +138,6 @@
   padding-top: 0.5rem;
 }
 
-.site-footer__brand,
 .site-footer__copy {
   margin: 0;
 }
@@ -143,25 +163,12 @@
   text-decoration: underline;
 }
 
-.site-footer__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-weight: 700;
-  color: var(--ink);
-}
-
 .site-footer__build {
   margin: 0.2rem 0 0;
   color: var(--muted);
   font-size: 0.9rem;
   text-align: right;
   white-space: nowrap;
-}
-
-.site-footer__mark {
-  width: 1.15rem;
-  height: 1.15rem;
 }
 
 @media (max-width: 640px) {
