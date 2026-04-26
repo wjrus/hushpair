@@ -1,1 +1,12 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /cable
+Disallow: /match
+Disallow: /rails/
+Disallow: /rooms/
+Disallow: /up
+Disallow: /wjr
+
+Sitemap: https://hushpair.com/sitemap.txt

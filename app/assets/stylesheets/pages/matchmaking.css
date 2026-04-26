@@ -45,6 +45,12 @@
   background: var(--panel-soft);
 }
 
+.match-note-strong {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 68%, var(--panel));
+  color: var(--ink);
+}
+
 .match-meta-grid {
   margin-top: 0.15rem;
 }

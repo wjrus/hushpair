@@ -148,6 +148,26 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "reports may not always support follow-up", response.body
   end
 
+  test "public pages include security headers" do
+    get root_path
+
+    assert_equal "same-origin", response.headers["Cross-Origin-Opener-Policy"]
+    assert_equal "same-origin", response.headers["Cross-Origin-Resource-Policy"]
+    assert_includes response.headers["Permissions-Policy"], "camera=()"
+    assert_includes response.headers["Content-Security-Policy"], "default-src 'self'"
+    assert_includes response.headers["Content-Security-Policy"], "object-src 'none'"
+  end
+
+  test "robots disallows private and dynamic routes" do
+    get "/robots.txt"
+
+    assert_equal 200, response.status
+    assert_match "Disallow: /rooms/", response.body
+    assert_match "Disallow: /match", response.body
+    assert_match "Disallow: /api/", response.body
+    assert_match "Sitemap: https://hushpair.com/sitemap.txt", response.body
+  end
+
   test "social metadata uses stable public urls without room access tokens" do
     post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json
 
@@ -196,6 +216,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     first.get match_path
     assert_equal 200, first.response.status
     assert_match "Looking for someone now", first.response.body
+    assert_match "not widely used yet", first.response.body
     assert_match "data-match-status-text", first.response.body
     assert_match "250 messages", first.response.body
     assert_no_match "people waiting", first.response.body
