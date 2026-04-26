@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_DIR="${HUSHPAIR_APP_DIR:-$HOME/apps/hushpair}"
+BACKUP_DIR="${HUSHPAIR_BACKUP_DIR:-$HOME/backups/hushpair}"
+RETENTION_DAYS="${HUSHPAIR_BACKUP_RETENTION_DAYS:-7}"
+
+cd "$APP_DIR"
+
+if [[ -f ".env" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source ".env"
+  set +a
+fi
+
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+backup_file="${BACKUP_DIR}/hushpair-postgres-${timestamp}.sql.gz"
+
+mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_DIR"
+
+docker compose exec -T db pg_dump \
+  --username="${POSTGRES_USER:-hushpair}" \
+  --dbname="${POSTGRES_DB:-hushpair_production}" \
+  --no-owner \
+  --no-acl \
+  | gzip -9 >"$backup_file"
+
+chmod 600 "$backup_file"
+
+find "$BACKUP_DIR" \
+  -type f \
+  -name "hushpair-postgres-*.sql.gz" \
+  -mtime +"$RETENTION_DAYS" \
+  -delete
+
+echo "$backup_file"
