@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APP_DIR="${HUSHPAIR_APP_DIR:-$HOME/apps/hushpair}"
+
+cd "$APP_DIR"
+
+if [[ "$#" -gt 0 ]]; then
+  exec docker compose logs "$@" web
+fi
+
+exec docker compose logs --tail=200 -f web
