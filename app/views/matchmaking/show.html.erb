@@ -1,0 +1,37 @@
+<% content_for :title, "Match now | hushpair" %>
+
+<main class="shell match-shell" id="main-content">
+  <section
+    class="card match-card"
+    data-match-waiting
+    data-match-poll-url="<%= match_path(format: :json) %>"
+  >
+    <p class="eyebrow">Match now</p>
+    <h1>Looking for someone now.</h1>
+    <p class="lede">
+      hushpair will drop you into a private one-to-one room as soon as another person is ready.
+    </p>
+
+    <div class="match-status">
+      <span class="match-status__dot" aria-hidden="true"></span>
+      <p class="match-status__text">Waiting for a match.</p>
+    </div>
+
+    <div class="invite-preview-grid match-meta-grid">
+      <div class="invite-preview-item">
+        <span class="toolbar-label">Retention</span>
+        <span class="settings-pill">Set by hushpair: Keep the last 250 messages</span>
+      </div>
+      <div class="invite-preview-item">
+        <span class="toolbar-label">Queue</span>
+        <span class="settings-pill" data-match-queue-size><%= pluralize(MatchQueueEntry.queued_ready.count, "person") %> waiting</span>
+      </div>
+    </div>
+
+    <p class="form-note">The search expires automatically if nobody arrives soon.</p>
+
+    <%= form_with url: match_path, method: :delete do %>
+      <%= submit_tag "Cancel search", class: "button button-secondary" %>
+    <% end %>
+  </section>
+</main>

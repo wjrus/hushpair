@@ -1,6 +1,7 @@
 class AnonymousSession < ApplicationRecord
   has_many :room_participants, dependent: :destroy
   has_many :rooms, through: :room_participants
+  has_many :match_queue_entries, dependent: :destroy
   has_many :moderation_events, dependent: :destroy
 
   encrypts :current_nickname

@@ -42,21 +42,23 @@
     </summary>
     <div class="chat-menu__panel">
       <div class="toolbar-pair-grid">
-        <div class="toolbar-group toolbar-group-retention">
-          <span class="toolbar-label-group">
-            <span class="toolbar-label">Message Retention</span>
-            <span class="help-badge" tabindex="0">
-              ?
-              <span class="help-popover">
-                Controls how much chat history hushpair keeps for this room.
-                <% unless participant.creator? %>
+      <div class="toolbar-group toolbar-group-retention">
+        <span class="toolbar-label-group">
+          <span class="toolbar-label">Message Retention</span>
+          <span class="help-badge" tabindex="0">
+            ?
+            <span class="help-popover">
+              Controls how much chat history hushpair keeps for this room.
+                <% if room.random_match? %>
+                  This setting is chosen by hushpair for matched chats.
+                <% elsif !participant.creator? %>
                   This setting was chosen by the room creator.
                 <% end %>
               </span>
             </span>
           </span>
 
-          <% if participant.creator? %>
+          <% if participant.creator? && room.invite_only? %>
             <%= form_with url: retention_room_path(room), method: :patch, class: "toolbar-retention-form" do |form| %>
               <%= form.select :message_retention_mode, options_for_select(retention_options, room.message_retention_mode), {}, class: "select-input toolbar-input", data: { chat_retention_mode_select: true } %>
               <div class="retention-inline-group retention-detail-group" data-retention-detail="line_count" <%= "hidden" unless room.line_count? %>>
@@ -74,7 +76,7 @@
               <%= form.submit "Save", class: "button button-secondary button-compact" %>
             <% end %>
           <% else %>
-            <span class="settings-pill"><%= room.retention_summary %></span>
+            <span class="settings-pill"><%= room.random_match? ? "Set by hushpair: #{room.retention_summary}" : room.retention_summary %></span>
           <% end %>
         </div>
       </div>

@@ -1,0 +1,55 @@
+.match-shell {
+  display: grid;
+  place-items: start center;
+}
+
+.match-card {
+  width: min(36rem, 100%);
+  display: grid;
+  gap: 0.8rem;
+}
+
+.match-card h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.4vw, 1.9rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.match-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.match-status__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--link);
+  box-shadow: 0 0 0 0 rgba(77, 166, 166, 0.45);
+  animation: match-pulse 1.6s ease infinite;
+}
+
+.match-status__text {
+  margin: 0;
+  color: var(--muted);
+}
+
+.match-meta-grid {
+  margin-top: 0.15rem;
+}
+
+@keyframes match-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(77, 166, 166, 0.45);
+  }
+
+  70% {
+    box-shadow: 0 0 0 0.5rem rgba(77, 166, 166, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(77, 166, 166, 0);
+  }
+}

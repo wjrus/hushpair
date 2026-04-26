@@ -75,12 +75,19 @@ class RoomMaintenanceJobTest < ActiveJob::TestCase
         role: :creator
       )
 
+      stale_queue_entry = session.match_queue_entries.create!(
+        expires_at: 5.minutes.ago,
+        queued_at: 15.minutes.ago,
+        status: :queued
+      )
+
       RoomMaintenanceJob.perform_now(now: Time.current)
 
       assert_equal "expired", open_room.reload.status
       assert_not Message.exists?(old_message.id)
       assert_equal [ "newer" ], retained_room.reload.messages.order(:sequence_number).pluck(:body)
       assert_not Room.exists?(stale_closed_room.id)
+      assert_equal "expired", stale_queue_entry.reload.status
       assert participant.reload.left_at.nil?
     end
   end

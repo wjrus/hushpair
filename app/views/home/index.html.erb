@@ -9,6 +9,24 @@
   </section>
 
   <section class="card-grid">
+    <section class="card home-match-card">
+      <p class="eyebrow">Or match now</p>
+      <h2>Meet the next available person</h2>
+      <p>Anonymous, text-only, one conversation at a time.</p>
+
+      <% if @current_match_queue_entry&.matched? && @current_match_queue_entry.matched_room&.accessible? %>
+        <%= link_to "Open matched chat", match_path, class: "button" %>
+      <% elsif @current_match_queue_entry&.queued? %>
+        <%= link_to "Resume search", match_path, class: "button" %>
+      <% else %>
+        <%= form_with url: match_path, method: :post, class: "stack" do |form| %>
+          <%= form.label :nickname, "Nickname (optional)" %>
+          <%= form.text_field :nickname, maxlength: 40, placeholder: "Night Owl" %>
+          <%= form.submit "Match with someone now", class: "button" %>
+        <% end %>
+      <% end %>
+    </section>
+
     <section class="card">
       <h2>Create a private room</h2>
       <p>Create a private room, share the invite, and enter when you're ready.</p>

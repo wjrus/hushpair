@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_23_231500) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_25_153000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -27,6 +27,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_23_231500) do
     t.string "user_agent_hash"
     t.index ["public_id"], name: "index_anonymous_sessions_on_public_id", unique: true
     t.index ["session_token_digest"], name: "index_anonymous_sessions_on_session_token_digest", unique: true
+  end
+
+  create_table "match_queue_entries", force: :cascade do |t|
+    t.bigint "anonymous_session_id", null: false
+    t.datetime "cancelled_at"
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "matched_at"
+    t.bigint "matched_room_id"
+    t.datetime "queued_at", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["anonymous_session_id"], name: "index_match_queue_entries_on_anonymous_session_id"
+    t.index ["anonymous_session_id"], name: "index_match_queue_entries_on_anonymous_session_id_when_queued", unique: true, where: "(status = 0)"
+    t.index ["matched_room_id"], name: "index_match_queue_entries_on_matched_room_id"
+    t.index ["status", "expires_at"], name: "index_match_queue_entries_on_status_and_expires_at"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -112,6 +128,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_23_231500) do
     t.index ["status", "expires_at"], name: "index_rooms_on_status_and_expires_at"
   end
 
+  add_foreign_key "match_queue_entries", "anonymous_sessions"
+  add_foreign_key "match_queue_entries", "rooms", column: "matched_room_id"
   add_foreign_key "messages", "room_participants"
   add_foreign_key "messages", "rooms"
   add_foreign_key "moderation_events", "anonymous_sessions"

@@ -106,6 +106,43 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Open", creator.response.body
   end
 
+  test "matching flow pairs two browsers into a random room" do
+    first = open_session
+    first.post match_path, params: { nickname: "Quiet Fox" }
+    assert_equal 302, first.response.status
+    assert_equal match_url, first.response.location
+
+    first.get match_path
+    assert_equal 200, first.response.status
+    assert_match "Looking for someone now", first.response.body
+
+    second = open_session
+    second.post match_path, params: { nickname: "Night Owl" }
+    assert_equal 302, second.response.status
+
+    matched_room = Room.order(:created_at).last
+    assert_equal "random_match", matched_room.mode
+    assert_equal "active", matched_room.status
+    assert_equal 2, matched_room.room_participants.count
+
+    first.get match_path
+    assert_equal 302, first.response.status
+    assert_equal room_url(matched_room), first.response.location
+  end
+
+  test "matching flow can be cancelled" do
+    seeker = open_session
+    seeker.post match_path, params: { nickname: "Quiet Fox" }
+    assert_equal 302, seeker.response.status
+
+    assert_difference -> { MatchQueueEntry.cancelled.count }, 1 do
+      seeker.delete match_path
+    end
+
+    assert_equal 302, seeker.response.status
+    assert_equal root_url, seeker.response.location
+  end
+
   test "report and leave creates a moderation event and redirects home" do
     creator = open_session
     creator.post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json

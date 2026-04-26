@@ -1,4 +1,5 @@
 // Importmap entrypoint for lightweight client-side behavior.
+import { installMatchmakingWaiting } from "matchmaking_waiting"
 import { installRoomChat } from "room_chat"
 
 const THEME_STORAGE_KEY = "hushpair-theme"
@@ -56,6 +57,7 @@ const installFlashDismiss = () => {
 const installAppUi = () => {
   installThemeToggle()
   installFlashDismiss()
+  installMatchmakingWaiting()
   installRoomChat()
 }
 

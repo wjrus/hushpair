@@ -16,6 +16,21 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
+.home-match-card {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--panel) 84%, var(--accent-soft)) 0%, color-mix(in srgb, var(--panel) 96%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--focus-ring) 30%, var(--line));
+}
+
+.home-match-card h2,
+.home-match-card p {
+  margin-top: 0;
+}
+
+.home-match-card .button {
+  width: 100%;
+}
+
 .home-room-list {
   margin-top: 1rem;
 }
