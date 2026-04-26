@@ -104,45 +104,66 @@ docker-compose logs --tail=200 web
 
 The container entrypoint waits for PostgreSQL and runs `bin/rails db:prepare` automatically before Puma starts.
 
-## 4. Apache reverse proxy
+## 4. Nginx reverse proxy
 
 Proxy HTTPS traffic on the host to `127.0.0.1:5000`, including websocket traffic for `/cable`.
 
-Example vhost:
+Example site config:
 
-```apache
-<VirtualHost *:80>
-  ServerName hushpair.com
-  ServerAlias www.hushpair.com
-  Redirect permanent / https://hushpair.com/
-</VirtualHost>
+```nginx
+server {
+  listen 80;
+  listen [::]:80;
+  server_name hushpair.com;
 
-<VirtualHost *:443>
-  ServerName hushpair.com
-  ServerAlias www.hushpair.com
+  location /.well-known/acme-challenge/ {
+    root /var/www/html;
+  }
 
-  SSLEngine on
-  SSLCertificateFile /etc/letsencrypt/live/hushpair.com/fullchain.pem
-  SSLCertificateKeyFile /etc/letsencrypt/live/hushpair.com/privkey.pem
+  location / {
+    return 301 https://hushpair.com$request_uri;
+  }
+}
 
-  ProxyPreserveHost On
-  RequestHeader set X-Forwarded-Proto "https"
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name hushpair.com;
 
-  ProxyPass /cable ws://127.0.0.1:5000/cable retry=0
-  ProxyPassReverse /cable ws://127.0.0.1:5000/cable
+  ssl_certificate /etc/letsencrypt/live/hushpair.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/hushpair.com/privkey.pem;
 
-  ProxyPass / http://127.0.0.1:5000/ retry=0
-  ProxyPassReverse / http://127.0.0.1:5000/
+  add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
 
-  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-</VirtualHost>
+  location /cable {
+    proxy_pass http://127.0.0.1:5000/cable;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+    proxy_buffering off;
+  }
+
+  location / {
+    proxy_pass http://127.0.0.1:5000;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
 ```
 
-Required Apache modules:
+Reload after editing:
 
 ```sh
-sudo a2enmod proxy proxy_http proxy_wstunnel headers ssl rewrite
-sudo systemctl reload apache2
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
 ## 5. Host cron for maintenance
