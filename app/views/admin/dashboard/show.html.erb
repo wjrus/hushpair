@@ -125,6 +125,30 @@
     </article>
   </section>
 
+  <section class="admin-actions-grid" aria-labelledby="admin-actions-title">
+    <article class="admin-panel">
+      <div class="admin-panel__header">
+        <div>
+          <h2 id="admin-actions-title">Admin actions</h2>
+          <p>Manual maintenance tools for production testing.</p>
+        </div>
+      </div>
+
+      <div class="admin-action-list">
+        <div class="admin-action-list__item">
+          <div>
+            <h3>Clear matching hash pairs</h3>
+            <p>Removes recent match cooldown records so testers can be paired again immediately. Rooms, messages, queues, and sessions are unchanged.</p>
+          </div>
+          <%= button_to "Clear hash pairs",
+            admin_match_pairs_path,
+            method: :delete,
+            class: "button button-secondary" %>
+        </div>
+      </div>
+    </article>
+  </section>
+
   <section class="admin-charts-grid">
     <% @metrics.charts.each do |chart| %>
       <article class="admin-panel">

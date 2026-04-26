@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   get "terms", to: "pages#terms"
   resource :match, only: [ :show, :create, :destroy ], controller: "matchmaking"
   get "wjr", to: "admin/dashboard#show", as: :admin_dashboard
+  delete "wjr/match_pairs", to: "admin/dashboard#clear_match_pairs", as: :admin_match_pairs
   delete "wjr/logout", to: "admin/sessions#destroy", as: :admin_logout
   match "auth/google_oauth2/callback", to: "admin/sessions#create", via: [ :get, :post ]
   match "auth/failure", to: "admin/sessions#failure", via: [ :get, :post ]
