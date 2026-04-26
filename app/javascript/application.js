@@ -3,39 +3,48 @@ import { installMatchmakingWaiting } from "matchmaking_waiting"
 import { installRoomChat } from "room_chat"
 
 const THEME_STORAGE_KEY = "hushpair-theme"
+const THEME_CHOICES = new Set(["system", "light", "dark", "terminal", "amber", "paper"])
 
-const applyTheme = (theme) => {
-  document.documentElement.dataset.theme = theme
-
-  const toggle = document.querySelector("[data-theme-toggle]")
-  if (!toggle) return
-
-  const isDark = theme === "dark"
-  const thumb = toggle.querySelector(".theme-toggle__thumb")
-  toggle.setAttribute("aria-pressed", String(isDark))
-  toggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode")
-  if (thumb) thumb.textContent = isDark ? "☾" : "☀"
+const systemTheme = () => {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
 }
 
-const preferredTheme = () => {
+const savedThemeChoice = () => {
   const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
-  if (storedTheme === "light" || storedTheme === "dark") return storedTheme
+  if (THEME_CHOICES.has(storedTheme)) return storedTheme
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+  return "system"
+}
+
+const applyThemeChoice = (choice) => {
+  const resolvedTheme = choice === "system" ? systemTheme() : choice
+  document.documentElement.dataset.theme = resolvedTheme
+  document.documentElement.dataset.themeChoice = choice
+
+  document.querySelectorAll("[data-theme-select]").forEach((select) => {
+    select.value = choice
+  })
 }
 
 let themeToggleInstalled = false
 let flashDismissInstalled = false
 
 const installThemeToggle = () => {
-  applyTheme(preferredTheme())
+  applyThemeChoice(savedThemeChoice())
 
   if (themeToggleInstalled) return
 
-  document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
-    const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark"
-    window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme)
-    applyTheme(nextTheme)
+  document.addEventListener("change", (event) => {
+    const select = event.target.closest("[data-theme-select]")
+    if (!select) return
+
+    const choice = THEME_CHOICES.has(select.value) ? select.value : "system"
+    window.localStorage.setItem(THEME_STORAGE_KEY, choice)
+    applyThemeChoice(choice)
+  })
+
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (savedThemeChoice() === "system") applyThemeChoice("system")
   })
 
   themeToggleInstalled = true

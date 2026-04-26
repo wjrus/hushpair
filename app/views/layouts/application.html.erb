@@ -33,19 +33,17 @@
           <%= image_tag "hushpair-logo.svg", alt: "hushpair", class: "brandmark__logo" %>
         <% end %>
 
-        <button
-          type="button"
-          class="theme-toggle"
-          data-theme-toggle
-          aria-label="Toggle dark mode"
-          aria-pressed="false"
-        >
-          <span class="theme-toggle__track" aria-hidden="true">
-            <span class="theme-toggle__state theme-toggle__state-sun">☀</span>
-            <span class="theme-toggle__state theme-toggle__state-moon">☾</span>
-            <span class="theme-toggle__thumb"></span>
-          </span>
-        </button>
+        <label class="theme-picker" aria-label="Theme">
+          <span class="theme-picker__label">Theme</span>
+          <select class="theme-picker__select" data-theme-select>
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="terminal">Terminal</option>
+            <option value="amber">Amber</option>
+            <option value="paper">Paper</option>
+          </select>
+        </label>
       </div>
     </header>
 

@@ -49,74 +49,30 @@
   font-size: 0.84rem;
 }
 
-.theme-toggle {
-  display: inline-flex;
+.theme-picker {
+  display: inline-grid;
+  gap: 0.15rem;
+}
+
+.theme-picker__label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.theme-picker__select {
   align-items: center;
-  justify-content: center;
   border: 1px solid var(--line);
-  border-radius: 999px;
-  width: 4rem;
-  height: 2rem;
-  padding: 0.12rem;
+  border-radius: 4px;
+  min-width: 8rem;
+  padding: 0.35rem 0.5rem;
   background: var(--header-button-bg);
   color: var(--ink);
-  cursor: pointer;
-  transition: background 120ms ease, border-color 120ms ease;
-}
-
-.theme-toggle__track {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--panel-soft);
-}
-
-.theme-toggle__state {
-  position: absolute;
-  top: 50%;
-  font-size: 0.95rem;
-  line-height: 1;
-  color: var(--muted);
-  transform: translateY(calc(-50% + 1px));
-  transition: color 120ms ease, opacity 120ms ease;
-}
-
-.theme-toggle__state-sun {
-  left: 0.45rem;
-}
-
-.theme-toggle__state-moon {
-  right: 0.48rem;
-}
-
-.theme-toggle__thumb {
-  position: absolute;
-  top: 0.18rem;
-  left: 0.18rem;
-  display: block;
-  width: 1.28rem;
-  height: 1.28rem;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
-  font-size: 1rem;
-  line-height: 1.28rem;
-  text-align: center;
-  transform: translateX(0);
-  transition: transform 160ms ease, background 120ms ease;
-  padding-top: 1px;
-}
-
-.theme-toggle[aria-pressed="true"] .theme-toggle__thumb {
-  transform: translateX(2.18rem);
-}
-
-.theme-toggle[aria-pressed="false"] .theme-toggle__state-moon,
-.theme-toggle[aria-pressed="true"] .theme-toggle__state-sun {
-  color: var(--accent);
+  font: inherit;
+  font-size: 0.9rem;
 }
 
 .flash {
@@ -210,7 +166,6 @@
 
 @media (max-width: 640px) {
   .site-header__inner {
-    flex-direction: column;
-    align-items: start;
+    align-items: center;
   }
 }
