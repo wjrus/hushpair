@@ -26,9 +26,13 @@
       <p>Anonymous, text-only, one conversation at a time.</p>
 
       <% if @current_match_queue_entry&.matched? && @current_match_queue_entry.matched_room&.accessible? %>
-        <%= link_to "Open matched chat", match_path, class: "button" %>
+        <div class="home-entry-card__actions">
+          <%= link_to "Open matched chat", match_path, class: "button" %>
+        </div>
       <% elsif @current_match_queue_entry&.queued? %>
-        <%= link_to "Resume search", match_path, class: "button" %>
+        <div class="home-entry-card__actions">
+          <%= link_to "Resume search", match_path, class: "button" %>
+        </div>
       <% else %>
         <%= form_with url: match_path, method: :post, class: "stack" do |form| %>
           <%= form.label :nickname, "Nickname (optional)" %>

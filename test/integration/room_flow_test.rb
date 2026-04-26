@@ -130,6 +130,17 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Open", creator.response.body
   end
 
+  test "home page keeps queued match action in the match card action area" do
+    seeker = open_session
+    seeker.post match_path, params: { nickname: "Quiet Fox" }
+
+    seeker.get root_path
+
+    assert_equal 200, seeker.response.status
+    assert_match "Resume search", seeker.response.body
+    assert_match "home-entry-card__actions", seeker.response.body
+  end
+
   test "matching flow pairs two browsers into a random room" do
     first = open_session
     first.post match_path, params: { nickname: "Quiet Fox" }

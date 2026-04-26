@@ -30,8 +30,13 @@
 }
 
 .home-entry-card .stack,
-.home-entry-card .button {
+.home-entry-card__actions {
   margin-top: auto;
+}
+
+.home-entry-card__actions {
+  display: grid;
+  gap: 0.55rem;
 }
 
 .home-match-card {
