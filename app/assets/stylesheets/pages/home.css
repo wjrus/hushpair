@@ -17,9 +17,9 @@
 }
 
 .home-entry-card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
-  align-content: start;
 }
 
 .home-entry-card h2,
