@@ -126,6 +126,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     creator.get root_path
 
     assert_equal 200, creator.response.status
+    assert_match "Experimental beta", creator.response.body
     assert_match "Your open rooms", creator.response.body
     assert_match "Open", creator.response.body
   end
@@ -150,6 +151,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     first.get match_path
     assert_equal 200, first.response.status
     assert_match "Looking for someone now", first.response.body
+    assert_match "data-match-status-text", first.response.body
     assert_match "250 messages", first.response.body
     assert_no_match "people waiting", first.response.body
     assert_no_match "Set by hushpair", first.response.body

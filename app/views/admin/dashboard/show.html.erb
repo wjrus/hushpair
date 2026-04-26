@@ -99,6 +99,32 @@
     </article>
   </section>
 
+  <section class="admin-health-grid">
+    <article class="admin-panel">
+      <div class="admin-panel__header">
+        <div>
+          <h2>System health</h2>
+          <p>Operational checks for the current app process.</p>
+        </div>
+      </div>
+
+      <dl class="admin-health-list">
+        <% @metrics.system_health.each do |item| %>
+          <div class="admin-health-list__item admin-health-list__item--<%= item[:tone] %>">
+            <dt>
+              <span class="admin-health-list__dot" aria-hidden="true"></span>
+              <%= item[:label] %>
+            </dt>
+            <dd>
+              <strong><%= item[:status] %></strong>
+              <span><%= item[:detail] %></span>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+    </article>
+  </section>
+
   <section class="admin-charts-grid">
     <% @metrics.charts.each do |chart| %>
       <article class="admin-panel">

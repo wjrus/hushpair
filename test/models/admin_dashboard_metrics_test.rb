@@ -68,6 +68,7 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
     assert_equal 1, metrics.current_summary.find { |card| card[:label] == "Matching now" }[:value]
     assert metrics.current_summary.find { |card| card[:label] == "Connected browsers" }.present?
     assert_equal({ "ended_by_next_match" => 1 }, metrics.room_end_reason_snapshot)
+    assert_equal [ "App", "Database", "Redis", "Queue", "Presence" ], metrics.system_health.map { |item| item[:label] }
     assert_equal 3, metrics.charts.size
     assert_equal [ active_room.id, waiting_room.id, ended_room.id ], metrics.recent_rooms.map(&:id)
     assert_equal [ "test" ], metrics.recent_reports.map(&:reason)

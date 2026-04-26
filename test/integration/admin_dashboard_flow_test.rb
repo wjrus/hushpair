@@ -24,6 +24,7 @@ class AdminDashboardFlowTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_match "System dashboard", response.body
       assert_match "signed in as wjr@wjr.us", response.body
+      assert_match "System health", response.body
     end
   end
 

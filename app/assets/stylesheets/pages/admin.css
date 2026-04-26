@@ -40,6 +40,7 @@
 .admin-topbar,
 .admin-range,
 .admin-live-grid,
+.admin-health-grid,
 .admin-charts-grid,
 .admin-recent-grid {
   display: grid;
@@ -225,6 +226,70 @@
   font-weight: 700;
 }
 
+.admin-health-grid {
+  margin-bottom: 1rem;
+}
+
+.admin-health-list {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+}
+
+.admin-health-list__item {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-soft);
+}
+
+.admin-health-list__item dt,
+.admin-health-list__item dd {
+  margin: 0;
+}
+
+.admin-health-list__item dt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.admin-health-list__item dd {
+  display: grid;
+  gap: 0.12rem;
+  font-size: 0.9rem;
+}
+
+.admin-health-list__item dd strong {
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-health-list__item dd span {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-health-list__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--link);
+}
+
+.admin-health-list__item--warning .admin-health-list__dot {
+  background: var(--danger);
+}
+
 .admin-charts-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -306,6 +371,7 @@
 @media (max-width: 900px) {
   .admin-stats-grid,
   .admin-live-grid,
+  .admin-health-list,
   .admin-charts-grid,
   .admin-recent-grid {
     grid-template-columns: 1fr;

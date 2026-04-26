@@ -1,5 +1,13 @@
 const POLL_INTERVAL_MS = 2000
+const STATUS_ROTATION_MS = 5000
 const TRANSIENT_STATUS_MIN = 500
+const STATUS_MESSAGES = [
+  "Waiting for a match.",
+  "Still looking for someone available.",
+  "Keeping your search open.",
+  "No rush. We’ll move you when someone arrives.",
+  "Looking for another quiet human."
+]
 
 let matchPollInstalled = false
 
@@ -10,13 +18,28 @@ const installMatchmakingWaiting = () => {
   if (matchPollInstalled) return
 
   const pollUrl = root.dataset.matchPollUrl
+  const statusText = root.querySelector("[data-match-status-text]")
 
   let intervalId = null
+  let statusIntervalId = null
+  let statusIndex = 0
+
+  const stopTimers = () => {
+    window.clearInterval(intervalId)
+    window.clearInterval(statusIntervalId)
+    matchPollInstalled = false
+  }
+
+  const rotateStatus = () => {
+    if (!statusText) return
+
+    statusIndex = (statusIndex + 1) % STATUS_MESSAGES.length
+    statusText.textContent = STATUS_MESSAGES[statusIndex]
+  }
 
   const poll = async () => {
     if (!document.body.contains(root)) {
-      window.clearInterval(intervalId)
-      matchPollInstalled = false
+      stopTimers()
       return
     }
 
@@ -55,6 +78,7 @@ const installMatchmakingWaiting = () => {
   }
 
   intervalId = window.setInterval(poll, POLL_INTERVAL_MS)
+  statusIntervalId = window.setInterval(rotateStatus, STATUS_ROTATION_MS)
   matchPollInstalled = true
 }
 

@@ -83,6 +83,16 @@ module Admin
         .transform_keys { |reason| reason.presence || "unspecified" }
     end
 
+    def system_health
+      [
+        health_item("App", "ok", app_release_label),
+        health_item("Database", *database_health),
+        health_item("Redis", *redis_health),
+        health_item("Queue", "ok", "#{MatchQueueEntry.queued_ready(@now).count} matching"),
+        health_item("Presence", "ok", "#{ParticipantPresenceRegistry.active_instance_count} connected")
+      ]
+    end
+
     def charts
       [
         chart("Room creation rate", "New rooms opened", Room, column: :created_at, tone: "primary"),
@@ -163,6 +173,29 @@ module Admin
 
     def static_card(label, value, tone:)
       { label:, value:, tone: }
+    end
+
+    def health_item(label, status, detail)
+      { label:, status:, detail:, tone: status == "ok" ? "ok" : "warning" }
+    end
+
+    def app_release_label
+      release = ENV["HUSHPAIR_RELEASE"].presence || ENV["GIT_COMMIT_SHA"].presence
+      release.present? ? "build #{release.to_s.first(12)}" : Rails.env
+    end
+
+    def database_health
+      ActiveRecord::Base.connection.select_value("SELECT 1")
+      [ "ok", "reachable" ]
+    rescue ActiveRecord::ActiveRecordError, PG::Error
+      [ "down", "unreachable" ]
+    end
+
+    def redis_health
+      Redis.new(url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1")).ping
+      [ "ok", "reachable" ]
+    rescue Redis::BaseConnectionError, Redis::CannotConnectError, Redis::TimeoutError
+      [ "down", "unreachable" ]
     end
 
     def chart(title, subtitle_prefix, model, column:, tone:)
