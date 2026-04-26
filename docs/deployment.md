@@ -44,7 +44,10 @@ At minimum, set:
 
 ```dotenv
 RAILS_ENV=production
+RAILS_LOG_LEVEL=info
+RAILS_MAX_THREADS=3
 HUSHPAIR_APP_PORT=5000
+HUSHPAIR_APP_DIR=/home/hushpair/apps/hushpair
 
 POSTGRES_USER=hushpair
 POSTGRES_PASSWORD=use-a-strong-password
@@ -54,13 +57,26 @@ DATABASE_URL=postgresql://hushpair:use-a-strong-password@db:5432/hushpair_produc
 REDIS_URL=redis://redis:6379/1
 
 SECRET_KEY_BASE=generate-a-real-secret
-HUSHPAIR_ALLOWED_HOSTS=hushpair.com,www.hushpair.com
-HUSHPAIR_CABLE_ALLOWED_ORIGINS=https://hushpair.com,https://www.hushpair.com
+HUSHPAIR_RELEASE=generated-by-script-update-env
+HUSHPAIR_ALLOWED_HOSTS=hushpair.com
+HUSHPAIR_CABLE_ALLOWED_ORIGINS=https://hushpair.com
 HUSHPAIR_FORCE_SSL=true
+
+GOOGLE_OAUTH_CLIENT_ID=optional-google-client-id
+GOOGLE_OAUTH_CLIENT_SECRET=optional-google-client-secret
+ADMIN_USER=wjr@wjr.us
 
 HUSHPAIR_AR_ENCRYPTION_PRIMARY_KEY=generate-a-real-key
 HUSHPAIR_AR_ENCRYPTION_DETERMINISTIC_KEY=generate-a-real-key
 HUSHPAIR_AR_ENCRYPTION_KEY_DERIVATION_SALT=generate-a-real-salt
+
+HUSHPAIR_DEPLOY_HOST=hushpair.com
+HUSHPAIR_BACKUP_DIR=/home/hushpair/backups/hushpair
+HUSHPAIR_BACKUP_RETENTION_DAYS=14
+
+HUSHPAIR_MATCH_MESSAGE_RETENTION_MODE=line_count
+HUSHPAIR_MATCH_MESSAGE_RETENTION_LINE_LIMIT=250
+HUSHPAIR_MATCH_MESSAGE_RETENTION_HOURS=24
 ```
 
 Generate secure values with commands like:

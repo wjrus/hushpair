@@ -71,6 +71,8 @@ Focused lifecycle coverage includes:
 
 ## Key environment variables
 
+See `.env.example` for the canonical deployment/configuration list.
+
 Required:
 
 - `DATABASE_URL`
