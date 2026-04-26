@@ -9,7 +9,7 @@
   </section>
 
   <section class="card-grid">
-    <section class="card">
+    <section class="card home-entry-card">
       <h2>Create a private room</h2>
       <p>Share the invite link with someone you want to message. They'll follow the link to enter the room.</p>
 
@@ -20,7 +20,7 @@
       <% end %>
     </section>
 
-    <section class="card home-match-card">
+    <section class="card home-entry-card home-match-card">
       <p class="eyebrow">Or match now</p>
       <h2>Meet the next available person</h2>
       <p>Anonymous, text-only, one conversation at a time.</p>
@@ -37,10 +37,6 @@
         <% end %>
       <% end %>
     </section>
-  </section>
-
-  <section class="card home-join-note">
-    <p><strong>Joining a private room:</strong> open the invite link you received.</p>
   </section>
 
   <% if @open_room_participations.any? %>
