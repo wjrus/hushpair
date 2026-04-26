@@ -9,7 +9,6 @@ Minimal anonymous 1:1 chat for two people. Private invite links, realtime text c
 - PostgreSQL
 - Redis for Action Cable
 - Solid Queue for jobs
-- Apache or another reverse proxy in front of Puma
 
 ## Local setup
 
@@ -43,7 +42,7 @@ The app expects PostgreSQL locally. `bin/dev` starts the Rails server and asset 
 - Contact-info heuristics block obvious handles, emails, phone numbers, and URLs
 - Closed rooms are purged after a short retention window
 
-Operational cleanup now runs through:
+Operational cleanup runs through:
 
 ```sh
 RBENV_VERSION=3.4.9 bin/rails hushpair:maintenance
@@ -55,7 +54,7 @@ That task:
 - enforces message-retention policies even when no new messages are arriving
 - purges old ended/expired rooms and their dependent data
 
-Run it every 5 minutes in production.
+Run it on a regular schedule in deployed environments.
 
 ## Test suite
 
@@ -69,13 +68,6 @@ Focused lifecycle coverage includes:
 - join/send/end-chat flow
 - expired-room access behavior
 - room maintenance expiration/retention/purge behavior
-
-## Production checklist
-
-See:
-
-- [Deployment guide](/Users/wjr/dev/hushpair/docs/deployment.md)
-- [Manual QA checklist](/Users/wjr/dev/hushpair/docs/manual-qa.md)
 
 ## Key environment variables
 
@@ -95,44 +87,21 @@ Recommended:
 - `HUSHPAIR_FORCE_SSL=true`
 - `RAILS_LOG_LEVEL=info`
 - `HUSHPAIR_RELEASE`
-- `GOOGLE_OAUTH_CLIENT_ID`
-- `GOOGLE_OAUTH_CLIENT_SECRET`
-- `ADMIN_USER=wjr@wjr.us`
 
-## Admin dashboard
+Administrative features, if enabled, are protected separately and should be configured through deployment-specific environment.
 
-The private admin dashboard lives at `/wjr`.
+## Deployment notes
 
-- Google OAuth callback URI: `https://hushpair.com/auth/google_oauth2/callback`
-- Allowed admin account defaults to `wjr@wjr.us`
-- Override the allowed account with `ADMIN_USER`
-
-The dashboard is intentionally aggregate-only: room counts, message volume, moderation activity, and currently open room breakdowns. It does not expose message contents, nicknames, or participant identifiers.
-
-## Deploy shape
-
-Recommended first production shape on a Linode VPS:
-
-- Docker Compose runs Rails/Puma, PostgreSQL, and Redis
-- Apache on the host terminates TLS and proxies HTTP + `/cable`
-- `hushpair:maintenance` runs from host cron every 5 minutes
-
-That keeps the first deployment simple and conventional. If websocket scale becomes a real problem later, the likely next step is swapping the realtime layer to AnyCable rather than redesigning the app.
+hushpair is designed to run behind a normal HTTPS reverse proxy with PostgreSQL and Redis available
+to the Rails process. Keep deployment-specific paths, hostnames, admin routes, OAuth settings, and
+operational runbooks outside public documentation.
 
 ## Release stamping
 
-For production Docker deploys, stamp the current commit into `.env` before you build:
+For deployed builds, stamp the current commit into the environment before building:
 
 ```sh
 ./script/update-env
 ```
 
 That updates `HUSHPAIR_RELEASE` so the footer can show the deployed build identifier.
-
-For the current single-host deploy flow, you can also run:
-
-```sh
-./script/deploy
-```
-
-That helper does the standard pull/build/restart/log/health-check sequence and includes a short pause before the final `/up` check.
