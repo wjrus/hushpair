@@ -128,6 +128,7 @@ class RoomsController < ApplicationController
     @participant = current_room_participant
     @invitation = current_room_invitation
     remember_room_invitation!(room: @room, raw_token: params[:invite_token]) if @participant&.creator? && @invitation.present?
+    prune_room_token_cookies!(keep_room: @room)
     @joinable = joinable_invitation?
     @invite_preview = @joinable
     @room_unavailable = @participant.blank? && !@invite_preview

@@ -85,6 +85,22 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Start a new chat", response.body
   end
 
+  test "room page prunes stale room token cookies" do
+    creator = open_session
+    creator.post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json
+    assert_equal 201, creator.response.status
+
+    payload = JSON.parse(creator.response.body)
+    creator.cookies["hushpair_participant_stale-room"] = "old"
+    creator.cookies["hushpair_invitation_stale-room"] = "old"
+
+    creator.get room_path(payload.dig("room", "slug"))
+
+    set_cookie = creator.response.headers["Set-Cookie"]
+    assert set_cookie.any? { |cookie| cookie.include?("hushpair_participant_stale-room=") }
+    assert set_cookie.any? { |cookie| cookie.include?("hushpair_invitation_stale-room=") }
+  end
+
   test "ended matched room without participant access shows a friendly unavailable page" do
     room = Room.create!(
       expires_at: 1.minute.ago,

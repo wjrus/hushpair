@@ -74,6 +74,21 @@ module AnonymousSessionSupport
     write_encrypted_cookie(invitation_cookie_name(room), raw_token)
   end
 
+  def prune_room_token_cookies!(keep_room: nil)
+    keep_names = if keep_room
+      [ participant_cookie_name(keep_room), invitation_cookie_name(keep_room) ].map(&:to_s)
+    else
+      []
+    end
+
+    cookies.each do |name, _value|
+      next unless room_token_cookie_name?(name)
+      next if keep_names.include?(name)
+
+      delete_cookie(name)
+    end
+  end
+
   def forget_room_participant!(room:)
     delete_cookie(participant_cookie_name(room))
     response.delete_header(PARTICIPANT_TOKEN_HEADER)
@@ -131,6 +146,10 @@ module AnonymousSessionSupport
 
   def delete_cookie(name)
     cookies.delete(name)
+  end
+
+  def room_token_cookie_name?(name)
+    name.start_with?("hushpair_participant_", "hushpair_invitation_")
   end
 
   def participant_cookie_name(room)
