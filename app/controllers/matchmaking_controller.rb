@@ -2,18 +2,17 @@ class MatchmakingController < ApplicationController
   before_action :require_anonymous_session!, only: [ :show, :destroy ]
 
   def show
-    @queue_entry = current_queue_entry
-    return redirect_to(root_path, alert: "Start matching from the home page.") unless @queue_entry
-
     @match_reason = params[:reason].presence_in(%w[next])
+    @queue_entry = current_queue_entry || renew_queue_entry!
+
     @queue_entry.expire_if_needed!
-    return redirect_to(root_path, alert: "That match request expired.") if @queue_entry.expired?
+    @queue_entry = renew_queue_entry! if @queue_entry.expired?
 
     if matched_room = matched_room_for(@queue_entry)
       return respond_to_matched_room(matched_room)
     end
 
-    return redirect_to(root_path, alert: "That match is no longer available.") if @queue_entry.matched?
+    return redirect_to(root_path, alert: "That match is no longer available.") if @queue_entry&.matched?
 
     respond_to do |format|
       format.html
@@ -51,8 +50,20 @@ class MatchmakingController < ApplicationController
     @current_queue_entry ||= MatchQueueEntry.current_for(current_anonymous_session)
   end
 
+  def renew_queue_entry!
+    @match_reason ||= "renewed"
+    result = Matchmaking::JoinQueue.call(
+      session: current_anonymous_session,
+      nickname: current_anonymous_session.current_nickname
+    )
+    return result.queue_entry if result.queued?
+
+    @renewed_matched_room = result.room
+    result.queue_entry
+  end
+
   def matched_room_for(queue_entry)
-    room = queue_entry.matched_room
+    room = @renewed_matched_room || queue_entry&.matched_room
     return unless room&.accessible?
 
     room

@@ -13,6 +13,8 @@
     </p>
     <% if @match_reason == "next" %>
       <p class="form-note match-note">That chat ended, so you are back in line for a new match.</p>
+    <% elsif @match_reason == "renewed" %>
+      <p class="form-note match-note">Still looking. We kept your place open and refreshed the search.</p>
     <% end %>
 
     <div class="match-status">
@@ -27,7 +29,7 @@
       </div>
     </div>
 
-    <p class="form-note">The search expires automatically if nobody arrives soon.</p>
+    <p class="form-note">You can cancel any time. If nobody arrives quickly, hushpair quietly keeps looking.</p>
 
     <%= form_with url: match_path, method: :delete do %>
       <%= submit_tag "Cancel search", class: "button button-secondary" %>

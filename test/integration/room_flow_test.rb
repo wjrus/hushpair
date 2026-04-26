@@ -203,6 +203,35 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_not payload.key?("queue_size")
   end
 
+  test "expired matching search renews instead of returning home" do
+    seeker = open_session
+    seeker.post match_path, params: { nickname: "Quiet Fox" }
+    MatchQueueEntry.queued.last.update!(expires_at: 1.minute.ago)
+
+    seeker.get match_path
+
+    assert_equal 200, seeker.response.status
+    assert_match "Still looking", seeker.response.body
+    assert_match "Looking for someone now", seeker.response.body
+    assert_equal 1, MatchQueueEntry.queued.count
+    assert_equal 1, MatchQueueEntry.expired.count
+  end
+
+  test "expired matching poll renews quietly" do
+    seeker = open_session
+    seeker.post match_path, params: { nickname: "Quiet Fox" }
+    MatchQueueEntry.queued.last.update!(expires_at: 1.minute.ago)
+
+    seeker.get match_path(format: :json), as: :json
+
+    assert_equal 200, seeker.response.status
+    payload = JSON.parse(seeker.response.body)
+    assert_equal "queued", payload.fetch("status")
+    assert payload.fetch("expires_at").present?
+    assert_equal 1, MatchQueueEntry.queued.count
+    assert_equal 1, MatchQueueEntry.expired.count
+  end
+
   test "repeated match requests keep one active queue entry for the browser" do
     seeker = open_session
 
