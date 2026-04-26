@@ -10,7 +10,8 @@ class RoomsController < ApplicationController
   end
 
   def create
-    session = current_or_create_anonymous_session!(nickname: params[:nickname])
+    nickname = safe_nickname(params[:nickname])
+    session = current_or_create_anonymous_session!(nickname:)
     participant_token = TokenDigest.generate
     invite_token = TokenDigest.generate(24)
 
@@ -26,8 +27,8 @@ class RoomsController < ApplicationController
       anonymous_session: session,
       joined_at: Time.current,
       last_seen_at: Time.current,
-      nickname: params[:nickname].presence,
-      nickname_state: params[:nickname].present? ? :accepted : :pending_review,
+      nickname: nickname,
+      nickname_state: nickname.present? ? :accepted : :pending_review,
       participant_token_digest: TokenDigest.hexdigest(participant_token),
       role: :creator
     )
@@ -41,7 +42,7 @@ class RoomsController < ApplicationController
 
   def join
     invitation = find_join_invitation!
-    session = current_or_create_anonymous_session!(nickname: params[:nickname])
+    session = current_or_create_anonymous_session!(nickname: safe_nickname(params[:nickname]))
 
     @room.expire_if_needed!
 
@@ -193,12 +194,14 @@ class RoomsController < ApplicationController
     existing_participant = @room.room_participants.find_by(anonymous_session: session)
     return rotate_participant_token!(existing_participant, participant_token) if existing_participant
 
+    nickname = safe_nickname(params[:nickname])
+
     @room.room_participants.create!(
       anonymous_session: session,
       joined_at: Time.current,
       last_seen_at: Time.current,
-      nickname: params[:nickname].presence,
-      nickname_state: params[:nickname].present? ? :accepted : :pending_review,
+      nickname: nickname,
+      nickname_state: nickname.present? ? :accepted : :pending_review,
       participant_token_digest: TokenDigest.hexdigest(participant_token),
       role: :guest
     )

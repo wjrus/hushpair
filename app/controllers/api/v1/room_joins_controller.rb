@@ -1,6 +1,7 @@
 class Api::V1::RoomJoinsController < Api::V1::BaseController
   def create
-    session = current_or_create_anonymous_session!(nickname: params[:nickname])
+    nickname = safe_nickname(params[:nickname])
+    session = current_or_create_anonymous_session!(nickname:)
     invitation = current_room.room_invitations.find_by!(token_digest: TokenDigest.hexdigest(params[:invite_token]))
 
     if invitation.revoked_at.present? || invitation.expires_at&.past? || !current_room.accessible?
@@ -24,8 +25,8 @@ class Api::V1::RoomJoinsController < Api::V1::BaseController
         anonymous_session: session,
         joined_at: Time.current,
         last_seen_at: Time.current,
-        nickname: params[:nickname].presence,
-        nickname_state: params[:nickname].present? ? :accepted : :pending_review,
+        nickname: nickname,
+        nickname_state: nickname.present? ? :accepted : :pending_review,
         participant_token_digest: TokenDigest.hexdigest(participant_token),
         role: :guest
       )

@@ -19,6 +19,7 @@ class RoomParticipant < ApplicationRecord
   validates :role, presence: true
 
   validate :nickname_must_not_include_contact_info
+  validate :nickname_must_not_be_prohibited
 
   private
 
@@ -26,5 +27,11 @@ class RoomParticipant < ApplicationRecord
     return unless ContentSafety.contains_contact_info?(nickname)
 
     errors.add(:nickname, "cannot include contact details or handles")
+  end
+
+  def nickname_must_not_be_prohibited
+    return unless ContentSafety.prohibited_nickname?(nickname)
+
+    errors.add(:nickname, "is not allowed")
   end
 end

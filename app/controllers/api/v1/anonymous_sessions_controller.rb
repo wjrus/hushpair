@@ -1,6 +1,6 @@
 class Api::V1::AnonymousSessionsController < Api::V1::BaseController
   def create
-    anonymous_session = current_or_create_anonymous_session!(nickname: params[:nickname])
+    anonymous_session = current_or_create_anonymous_session!(nickname: safe_nickname(params[:nickname]))
 
     render json: {
       anonymous_session: {

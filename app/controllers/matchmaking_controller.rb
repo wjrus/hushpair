@@ -26,9 +26,10 @@ class MatchmakingController < ApplicationController
   end
 
   def create
-    session = current_or_create_anonymous_session!(nickname: params[:nickname])
-    session.update!(current_nickname: params[:nickname]) if params[:nickname].present? && session.current_nickname != params[:nickname]
-    result = Matchmaking::JoinQueue.call(session:, nickname: params[:nickname])
+    nickname = safe_nickname(params[:nickname])
+    session = current_or_create_anonymous_session!(nickname:)
+    session.update!(current_nickname: nickname) if nickname.present? && session.current_nickname != nickname
+    result = Matchmaking::JoinQueue.call(session:, nickname:)
 
     return redirect_to(match_room_path_for(result.room, raw_token: result.participant_token)) if result.matched?
 

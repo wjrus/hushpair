@@ -38,7 +38,7 @@ module AnonymousSessionSupport
     raw_token = TokenDigest.generate
 
     @current_anonymous_session = AnonymousSession.create!(
-      current_nickname: nickname.presence,
+      current_nickname: safe_nickname(nickname),
       ip_hash: fingerprint(request.remote_ip),
       last_seen_at: Time.current,
       session_token_digest: TokenDigest.hexdigest(raw_token),
@@ -50,6 +50,10 @@ module AnonymousSessionSupport
     response.set_header(SESSION_TOKEN_HEADER, raw_token)
 
     @current_anonymous_session
+  end
+
+  def safe_nickname(value)
+    ContentSafety.safe_nickname(value)
   end
 
   def current_room_participant_for(room)

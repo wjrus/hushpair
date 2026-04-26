@@ -176,6 +176,17 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "home-entry-card__actions", seeker.response.body
   end
 
+  test "unsafe nicknames are not stored or displayed" do
+    post api_v1_rooms_path, params: { nickname: "jew_destroyer_420_69" }, as: :json
+
+    assert_equal 201, response.status
+    payload = JSON.parse(response.body)
+    assert_nil payload.dig("room", "participant", "nickname")
+    assert_no_match "jew_destroyer", response.body
+    assert_nil AnonymousSession.last.current_nickname
+    assert_nil RoomParticipant.last.nickname
+  end
+
   test "matching flow pairs two browsers into a random room" do
     first = open_session
     first.post match_path, params: { nickname: "Quiet Fox" }

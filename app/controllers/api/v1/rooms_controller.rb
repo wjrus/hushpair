@@ -1,6 +1,7 @@
 class Api::V1::RoomsController < Api::V1::BaseController
   def create
-    session = current_or_create_anonymous_session!(nickname: params[:nickname])
+    nickname = safe_nickname(params[:nickname])
+    session = current_or_create_anonymous_session!(nickname:)
     invite_token = TokenDigest.generate(24)
     participant_token = TokenDigest.generate
 
@@ -16,8 +17,8 @@ class Api::V1::RoomsController < Api::V1::BaseController
       anonymous_session: session,
       joined_at: Time.current,
       last_seen_at: Time.current,
-      nickname: params[:nickname].presence,
-      nickname_state: params[:nickname].present? ? :accepted : :pending_review,
+      nickname: nickname,
+      nickname_state: nickname.present? ? :accepted : :pending_review,
       participant_token_digest: TokenDigest.hexdigest(participant_token),
       role: :creator
     )

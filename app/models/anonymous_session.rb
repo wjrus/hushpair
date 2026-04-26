@@ -13,6 +13,7 @@ class AnonymousSession < ApplicationRecord
   validates :public_id, presence: true, uniqueness: true
   validates :session_token_digest, presence: true, uniqueness: true
   validates :current_nickname, length: { maximum: 40 }, allow_blank: true
+  validate :current_nickname_must_be_safe
 
   def open_room_participations
     room_participants
@@ -27,5 +28,12 @@ class AnonymousSession < ApplicationRecord
 
   def ensure_public_id
     self.public_id ||= SecureRandom.uuid
+  end
+
+  def current_nickname_must_be_safe
+    return if current_nickname.blank?
+    return unless ContentSafety.contains_contact_info?(current_nickname) || ContentSafety.prohibited_nickname?(current_nickname)
+
+    errors.add(:current_nickname, "is not allowed")
   end
 end
