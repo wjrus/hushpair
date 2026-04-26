@@ -237,6 +237,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
 
     first.get room_path(matched_room)
     assert_match 'data-chat-room-mode="random_match"', first.response.body
+    assert_match 'data-chat-match-url="/match?reason=next"', first.response.body
     assert_match "data-chat-participant-token", first.response.body
     assert_no_match "Bookmark", first.response.body
     assert_no_match "data-chat-menu", first.response.body
@@ -404,6 +405,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_equal 200, second.response.status
     payload = JSON.parse(second.response.body)
     assert_equal "ended", payload.dig("room", "status")
+    assert_equal "ended_by_next_match", payload.dig("room", "end_reason")
     assert_equal match_path(reason: "next"), payload.dig("room", "match_url")
     assert_equal "Your chat partner moved on. Looking for someone new...", payload.dig("room", "system_notice")
 

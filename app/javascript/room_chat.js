@@ -39,6 +39,7 @@ const initRoomChat = (root) => {
   const confirmMessage = root.querySelector("[data-chat-confirm-message]")
   const participantToken = root.dataset.chatParticipantToken
   const clientInstanceId = root.dataset.chatClientInstanceId
+  const fallbackMatchUrl = root.dataset.chatMatchUrl
   const resilientRoomStateEnabled = root.dataset.chatRoomMode === "random_match"
 
   if (!list || !form || !bodyInput || !sendButton || !emptyState) return
@@ -230,14 +231,19 @@ const initRoomChat = (root) => {
   }
 
   const redirectToMatchIfNeeded = (room) => {
-    if (!room.match_url) return
+    const nextMatchUrl = room.match_url || (
+      resilientRoomStateEnabled && room.status === "ended" && room.end_reason === "ended_by_next_match"
+        ? fallbackMatchUrl
+        : null
+    )
+    if (!nextMatchUrl) return
     if (Number(room.next_match_started_by_participant_id) === localParticipantId) return
     if (matchRedirectScheduled) return
 
     matchRedirectScheduled = true
     appendSystemNotice(room.system_notice || "Your chat partner moved on. Looking for someone new...")
     window.setTimeout(() => {
-      window.location.href = room.match_url
+      window.location.href = nextMatchUrl
     }, MATCH_REDIRECT_DELAY_MS)
   }
 

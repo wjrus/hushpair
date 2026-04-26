@@ -15,6 +15,7 @@
   data-chat-client-instance-id="<%= current_client_instance_id %>"
   data-chat-share-url="<%= share_invite_url %>"
   data-chat-bookmark-url="<%= participant_return_url %>"
+  data-chat-match-url="<%= match_path(reason: "next") if room.random_match? %>"
   data-chat-role="<%= participant.role %>"
 >
   <div class="card chat-card">

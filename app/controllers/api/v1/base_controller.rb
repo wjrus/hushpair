@@ -46,6 +46,7 @@ class Api::V1::BaseController < ActionController::API
       expires_at: room.expires_at&.iso8601,
       expiry_summary: room.expiry_summary,
       ended_at: room.ended_at&.iso8601,
+      end_reason: room.end_reason,
       match_url: next_match_redirect_path_for(room),
       system_notice: next_match_system_notice_for(room),
       participant_count: room.room_participants.count,
