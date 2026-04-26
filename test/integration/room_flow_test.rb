@@ -139,6 +139,15 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Anonymous matching", response.body
   end
 
+  test "terms describe experimental temporary matching" do
+    get terms_path
+
+    assert_equal 200, response.status
+    assert_match "experimental beta software", response.body
+    assert_match "Anonymous matching", response.body
+    assert_match "reports may not always support follow-up", response.body
+  end
+
   test "home page keeps queued match action in the match card action area" do
     seeker = open_session
     seeker.post match_path, params: { nickname: "Quiet Fox" }
