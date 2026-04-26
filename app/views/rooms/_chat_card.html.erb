@@ -1,5 +1,5 @@
 <section
-  class="card chat-card"
+  class="chat-room-layout"
   data-chat-room-public-id="<%= room.public_id %>"
   data-chat-room-status="<%= room.status %>"
   data-chat-room-show-url="<%= api_v1_room_path(room.public_id) %>"
@@ -16,26 +16,38 @@
   data-chat-bookmark-url="<%= participant_return_url %>"
   data-chat-role="<%= participant.role %>"
 >
-  <%= render "chat_header",
-    room: room,
-    participant: participant,
-    share_invite_url: share_invite_url,
-    participant_return_url: participant_return_url,
-    participant_return_token: participant_return_token,
-    room_expiry_summary: room_expiry_summary,
-    retention_options: retention_options %>
+  <div class="card chat-card">
+    <%= render "chat_header",
+      room: room,
+      participant: participant,
+      share_invite_url: share_invite_url,
+      participant_return_url: participant_return_url,
+      participant_return_token: participant_return_token,
+      room_expiry_summary: room_expiry_summary,
+      retention_options: retention_options %>
 
-  <dialog class="chat-confirm-modal" data-chat-confirm-dialog aria-labelledby="chat-confirm-title">
-    <form class="chat-confirm-modal__card" method="dialog">
-      <h2 class="chat-confirm-modal__title" id="chat-confirm-title">Confirm action</h2>
-      <p class="chat-confirm-modal__message" data-chat-confirm-message></p>
-      <div class="chat-confirm-modal__actions">
-        <button class="button button-secondary button-compact" type="submit" value="cancel">Cancel</button>
-        <button class="button button-compact" type="submit" value="confirm" data-chat-confirm-accept>Continue</button>
-      </div>
-    </form>
-  </dialog>
+    <dialog class="chat-confirm-modal" data-chat-confirm-dialog aria-labelledby="chat-confirm-title">
+      <form class="chat-confirm-modal__card" method="dialog">
+        <h2 class="chat-confirm-modal__title" id="chat-confirm-title">Confirm action</h2>
+        <p class="chat-confirm-modal__message" data-chat-confirm-message></p>
+        <div class="chat-confirm-modal__actions">
+          <button class="button button-secondary button-compact" type="submit" value="cancel">Cancel</button>
+          <button class="button button-compact" type="submit" value="confirm" data-chat-confirm-accept>Continue</button>
+        </div>
+      </form>
+    </dialog>
 
-  <%= render "transcript", messages: messages, participant: participant %>
-  <%= render "composer", chat_open: chat_open %>
+    <%= render "transcript", messages: messages, participant: participant %>
+    <%= render "composer", chat_open: chat_open %>
+  </div>
+
+  <% if room.random_match? %>
+    <aside class="card chat-details-card" aria-label="Chat details">
+      <%= render "chat_details",
+        room: room,
+        participant: participant,
+        room_expiry_summary: room_expiry_summary,
+        retention_options: retention_options %>
+    </aside>
+  <% end %>
 </section>

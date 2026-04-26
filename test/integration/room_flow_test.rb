@@ -206,6 +206,11 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     first.get room_path(matched_room)
     assert_match "data-chat-participant-token", first.response.body
     assert_no_match "Bookmark", first.response.body
+    assert_no_match "data-chat-menu", first.response.body
+    assert_match "Report", first.response.body
+    assert_match "Next", first.response.body
+    assert_match "End chat", first.response.body
+    assert_match "Chat details", first.response.body
   end
 
   test "matching status endpoint returns matched room url for waiting browser" do

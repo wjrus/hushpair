@@ -1,0 +1,50 @@
+<div class="toolbar-pair-grid">
+  <div class="toolbar-group toolbar-group-retention">
+    <span class="toolbar-label-group">
+      <span class="toolbar-label">Message Retention</span>
+      <span class="help-badge" tabindex="0">
+        ?
+        <span class="help-popover">
+          Controls how much chat history hushpair keeps for this room.
+          <% if room.random_match? %>
+            This setting is chosen by hushpair for matched chats.
+          <% elsif !participant.creator? %>
+            This setting was chosen by the room creator.
+          <% end %>
+        </span>
+      </span>
+    </span>
+
+    <% if participant.creator? && room.invite_only? %>
+      <%= form_with url: retention_room_path(room), method: :patch, class: "toolbar-retention-form" do |form| %>
+        <%= form.select :message_retention_mode, options_for_select(retention_options, room.message_retention_mode), {}, class: "select-input toolbar-input", data: { chat_retention_mode_select: true } %>
+        <div class="retention-inline-group retention-detail-group" data-retention-detail="line_count" <%= "hidden" unless room.line_count? %>>
+          <%= form.number_field :message_retention_line_limit, min: 10, max: 10000, step: 10, class: "toolbar-input toolbar-input-small", placeholder: "250" %>
+          <span class="toolbar-unit">messages</span>
+        </div>
+        <div class="retention-inline-group retention-detail-group" data-retention-detail="time_window" <%= "hidden" unless room.time_window? %>>
+          <%= form.number_field :message_retention_hours, min: 1, max: 720, step: 1, class: "toolbar-input toolbar-input-small", placeholder: "24" %>
+          <span class="toolbar-unit">hours</span>
+        </div>
+        <span class="toolbar-unit retention-detail-group" data-retention-detail="forever" <%= "hidden" unless room.forever? %>>room expiry</span>
+        <% if params[:participant_token].present? %>
+          <%= hidden_field_tag :participant_token, params[:participant_token] %>
+        <% end %>
+        <%= form.submit "Save", class: "button button-secondary button-compact" %>
+      <% end %>
+    <% else %>
+      <span class="settings-pill"><%= room.random_match? ? room.retention_short_summary : room.retention_summary %></span>
+    <% end %>
+  </div>
+
+  <div class="toolbar-group">
+    <span class="toolbar-label-group">
+      <span class="toolbar-label">Lifetime</span>
+      <span class="help-badge" tabindex="0">
+        ?
+        <span class="help-popover">Waiting rooms expire after 30 minutes. Once both people join, active rooms last 24 hours and extend when new messages are sent, up to 30 days from creation.</span>
+      </span>
+    </span>
+    <span class="settings-pill" data-chat-room-expiry-summary><%= room_expiry_summary %></span>
+  </div>
+</div>
