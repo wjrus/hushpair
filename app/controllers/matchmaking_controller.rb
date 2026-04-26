@@ -9,7 +9,7 @@ class MatchmakingController < ApplicationController
     return redirect_to(root_path, alert: "That match request expired.") if @queue_entry.expired?
 
     if matched_room = matched_room_for(@queue_entry)
-      return redirect_to(match_room_path_for(matched_room))
+      return respond_to_matched_room(matched_room)
     end
 
     return redirect_to(root_path, alert: "That match is no longer available.") if @queue_entry.matched?
@@ -56,6 +56,15 @@ class MatchmakingController < ApplicationController
     return unless room&.accessible?
 
     room
+  end
+
+  def respond_to_matched_room(room)
+    path = match_room_path_for(room)
+
+    respond_to do |format|
+      format.html { redirect_to path }
+      format.json { render json: { status: "matched", room_url: path } }
+    end
   end
 
   def match_room_path_for(room, raw_token: nil)

@@ -130,6 +130,25 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_equal room_url(matched_room), first.response.location
   end
 
+  test "matching status endpoint returns matched room url for waiting browser" do
+    first = open_session
+    first.post match_path, params: { nickname: "Quiet Fox" }
+    assert_equal 302, first.response.status
+
+    second = open_session
+    second.post match_path, params: { nickname: "Night Owl" }
+    assert_equal 302, second.response.status
+
+    matched_room = Room.order(:created_at).last
+
+    first.get match_path(format: :json), as: :json
+    assert_equal 200, first.response.status
+
+    payload = JSON.parse(first.response.body)
+    assert_equal "matched", payload.fetch("status")
+    assert_equal room_path(matched_room), payload.fetch("room_url")
+  end
+
   test "matching flow can be cancelled" do
     seeker = open_session
     seeker.post match_path, params: { nickname: "Quiet Fox" }

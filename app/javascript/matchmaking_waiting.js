@@ -37,6 +37,11 @@ const installMatchmakingWaiting = () => {
       }
 
       const payload = await response.json()
+      if (payload.status === "matched" && payload.room_url) {
+        window.location.href = payload.room_url
+        return
+      }
+
       if (payload.status !== "queued") {
         window.location.reload()
         return

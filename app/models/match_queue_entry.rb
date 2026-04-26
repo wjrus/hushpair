@@ -6,7 +6,7 @@ class MatchQueueEntry < ApplicationRecord
 
   enum :status, { queued: 0, matched: 1, cancelled: 2, expired: 3 }, default: :queued
 
-  scope :active, -> { where(status: [ :queued, :matched ]) }
+  scope :active, -> { where(status: [ :queued, :matched ]).where("expires_at > ?", Time.current) }
   scope :queued_ready, ->(now = Time.current) { queued.where("expires_at > ?", now).order(:queued_at, :id) }
 
   validates :queued_at, :expires_at, presence: true
@@ -16,7 +16,9 @@ class MatchQueueEntry < ApplicationRecord
   end
 
   def self.expire_due!(now: Time.current)
-    queued.where("expires_at <= ?", now).update_all(status: statuses[:expired], updated_at: now)
+    where(status: [ statuses[:queued], statuses[:matched] ])
+      .where("expires_at <= ?", now)
+      .update_all(status: statuses[:expired], updated_at: now)
   end
 
   def self.queue_expiration_from(time)
