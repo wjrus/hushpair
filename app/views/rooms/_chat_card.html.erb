@@ -1,6 +1,7 @@
 <section
   class="chat-room-layout"
   data-chat-room-public-id="<%= room.public_id %>"
+  data-chat-room-mode="<%= room.mode %>"
   data-chat-room-status="<%= room.status %>"
   data-chat-room-show-url="<%= api_v1_room_path(room.public_id) %>"
   data-chat-messages-url="<%= api_v1_room_messages_path(room.public_id) %>"

@@ -236,6 +236,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_equal room_url(matched_room), first.response.location
 
     first.get room_path(matched_room)
+    assert_match 'data-chat-room-mode="random_match"', first.response.body
     assert_match "data-chat-participant-token", first.response.body
     assert_no_match "Bookmark", first.response.body
     assert_no_match "data-chat-menu", first.response.body

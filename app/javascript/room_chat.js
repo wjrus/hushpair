@@ -1,5 +1,7 @@
 import consumer from "channels/consumer"
 
+const MATCH_ROOM_STATE_INTERVAL_MS = 5000
+
 const initializedRoots = new WeakSet()
 
 const installRoomChat = () => {
@@ -36,6 +38,7 @@ const initRoomChat = (root) => {
   const confirmMessage = root.querySelector("[data-chat-confirm-message]")
   const participantToken = root.dataset.chatParticipantToken
   const clientInstanceId = root.dataset.chatClientInstanceId
+  const resilientRoomStateEnabled = root.dataset.chatRoomMode === "random_match"
 
   if (!list || !form || !bodyInput || !sendButton || !emptyState) return
 
@@ -45,6 +48,7 @@ const initRoomChat = (root) => {
   let isSending = false
   let fallbackMessagesInterval = null
   let fallbackRoomInterval = null
+  let resilientRoomStateInterval = null
   let presenceInterval = null
   let expiryTimeout = null
   let pendingConfirmForm = null
@@ -180,6 +184,13 @@ const initRoomChat = (root) => {
   }
 
   const syncRoomState = async () => {
+    if (!document.body.contains(root)) {
+      stopFallbackSync()
+      stopResilientRoomStateSync()
+      stopPresenceHeartbeat()
+      return
+    }
+
     try {
       const response = await fetch(roomShowUrl, {
         headers: { Accept: "application/json" },
@@ -233,6 +244,19 @@ const initRoomChat = (root) => {
 
     pingPresence()
     presenceInterval = window.setInterval(pingPresence, 30000)
+  }
+
+  const startResilientRoomStateSync = () => {
+    if (!resilientRoomStateEnabled || resilientRoomStateInterval) return
+
+    resilientRoomStateInterval = window.setInterval(syncRoomState, MATCH_ROOM_STATE_INTERVAL_MS)
+  }
+
+  const stopResilientRoomStateSync = () => {
+    if (!resilientRoomStateInterval) return
+
+    window.clearInterval(resilientRoomStateInterval)
+    resilientRoomStateInterval = null
   }
 
   const stopPresenceHeartbeat = () => {
@@ -380,6 +404,7 @@ const initRoomChat = (root) => {
   autosizeComposer()
   syncRetentionFields()
   updateComposerState(root.dataset.chatRoomStatus, roomExpirySummary?.textContent, expiresAt)
+  startResilientRoomStateSync()
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
