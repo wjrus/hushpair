@@ -138,6 +138,21 @@ class Room < ApplicationRecord
     end
   end
 
+  def retention_short_summary
+    case message_retention_mode
+    when "line_count"
+      "#{message_retention_line_limit} messages"
+    when "time_window"
+      "#{message_retention_hours} hours"
+    else
+      "Until expiry"
+    end
+  end
+
+  def self.default_retention_short_summary
+    new.retention_short_summary
+  end
+
   private
 
   def should_expire?(now)

@@ -19,8 +19,7 @@ class MatchmakingController < ApplicationController
       format.json do
         render json: {
           status: "queued",
-          expires_at: @queue_entry.expires_at.iso8601,
-          queue_size: MatchQueueEntry.queued_ready.count
+          expires_at: @queue_entry.expires_at.iso8601
         }
       end
     end

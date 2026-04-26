@@ -19,12 +19,8 @@
 
     <div class="invite-preview-grid match-meta-grid">
       <div class="invite-preview-item">
-        <span class="toolbar-label">Retention</span>
-        <span class="settings-pill">Set by hushpair: Keep the last 250 messages</span>
-      </div>
-      <div class="invite-preview-item">
-        <span class="toolbar-label">Queue</span>
-        <span class="settings-pill" data-match-queue-size><%= pluralize(MatchQueueEntry.queued_ready.count, "person") %> waiting</span>
+        <span class="toolbar-label">Message Retention</span>
+        <span class="settings-pill"><%= Room.default_retention_short_summary %></span>
       </div>
     </div>
 

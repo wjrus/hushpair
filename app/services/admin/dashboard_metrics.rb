@@ -68,6 +68,7 @@ module Admin
         static_card("Open rooms now", snapshot.values.sum, tone: "primary"),
         static_card("Waiting now", snapshot[:waiting], tone: "default"),
         static_card("Active now", snapshot[:active], tone: "accent"),
+        static_card("Matching now", MatchQueueEntry.queued_ready(@now).count, tone: "default"),
         static_card("Rooms ended today", Room.where(ended_at: @now.beginning_of_day..@now).count, tone: "default")
       ]
     end

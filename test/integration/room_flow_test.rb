@@ -139,6 +139,9 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     first.get match_path
     assert_equal 200, first.response.status
     assert_match "Looking for someone now", first.response.body
+    assert_match "250 messages", first.response.body
+    assert_no_match "people waiting", first.response.body
+    assert_no_match "Set by hushpair", first.response.body
 
     second = open_session
     second.post match_path, params: { nickname: "Night Owl" }
@@ -175,6 +178,18 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     payload = JSON.parse(first.response.body)
     assert_equal "matched", payload.fetch("status")
     assert_equal room_path(matched_room), payload.fetch("room_url")
+  end
+
+  test "matching status endpoint does not expose public queue size" do
+    first = open_session
+    first.post match_path, params: { nickname: "Quiet Fox" }
+
+    first.get match_path(format: :json), as: :json
+
+    assert_equal 200, first.response.status
+    payload = JSON.parse(first.response.body)
+    assert_equal "queued", payload.fetch("status")
+    assert_not payload.key?("queue_size")
   end
 
   test "next from a matched chat avoids rematching the same pair too quickly" do

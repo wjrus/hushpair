@@ -9,7 +9,6 @@ const installMatchmakingWaiting = () => {
   if (matchPollInstalled) return
 
   const pollUrl = root.dataset.matchPollUrl
-  const queueSize = root.querySelector("[data-match-queue-size]")
 
   let intervalId = null
 
@@ -47,10 +46,6 @@ const installMatchmakingWaiting = () => {
         return
       }
 
-      if (queueSize && typeof payload.queue_size === "number") {
-        const suffix = payload.queue_size === 1 ? "person waiting" : "people waiting"
-        queueSize.textContent = `${payload.queue_size} ${suffix}`
-      }
     } catch (_error) {
       // Let the next poll try again quietly.
     }

@@ -43,6 +43,11 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
       reason: "test",
       created_at: now - 10.minutes
     )
+    session.match_queue_entries.create!(
+      queued_at: now - 1.minute,
+      expires_at: now + 9.minutes,
+      status: :queued
+    )
 
     metrics = Admin::DashboardMetrics.new(preset: "24h", start_date: nil, end_date: nil, now: now)
 
@@ -51,6 +56,7 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
     assert_equal 1, metrics.active_room_snapshot[:active]
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Messages sent" }[:value]
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Reports filed" }[:value]
+    assert_equal 1, metrics.current_summary.find { |card| card[:label] == "Matching now" }[:value]
     assert_equal 3, metrics.charts.size
     assert_equal [ active_room.id, waiting_room.id ], metrics.recent_rooms.map(&:id)
     assert_equal [ "test" ], metrics.recent_reports.map(&:reason)
