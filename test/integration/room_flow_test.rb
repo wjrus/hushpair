@@ -148,6 +148,23 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "reports may not always support follow-up", response.body
   end
 
+  test "social metadata uses stable public urls without room access tokens" do
+    post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json
+
+    payload = JSON.parse(response.body)
+    room_slug = payload.dig("room", "slug")
+    invite_token = payload.dig("invite", "token")
+
+    get room_path(room_slug, invite_token:)
+
+    assert_equal 200, response.status
+    assert_match 'property="og:image" content="https://hushpair.com/og-image.png"', response.body
+    assert_match 'property="og:url" content="https://hushpair.com/"', response.body
+    assert_match 'name="twitter:card" content="summary_large_image"', response.body
+    assert_no_match invite_token, response.body.scan(/<(?:meta|link)\b[^>]*>/).join("\n")
+    assert File.exist?(Rails.root.join("public/og-image.png"))
+  end
+
   test "home page keeps queued match action in the match card action area" do
     seeker = open_session
     seeker.post match_path, params: { nickname: "Quiet Fox" }

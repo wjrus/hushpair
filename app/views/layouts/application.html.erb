@@ -1,11 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "hushpair" %></title>
+    <% meta_title = content_for(:title).presence || "hushpair" %>
+    <% meta_description = content_for(:description).presence || "Private one-to-one text chat. No accounts, no feeds, no audience." %>
+    <% canonical_url = content_for(:canonical_url).presence || "https://hushpair.com/" %>
+    <% social_image_url = "https://hushpair.com/og-image.png" %>
+
+    <title><%= meta_title %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="description" content="<%= meta_description %>">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="hushpair">
     <meta name="mobile-web-app-capable" content="yes">
+    <link rel="canonical" href="<%= canonical_url %>">
+    <meta property="og:site_name" content="hushpair">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<%= meta_title %>">
+    <meta property="og:description" content="<%= meta_description %>">
+    <meta property="og:url" content="<%= canonical_url %>">
+    <meta property="og:image" content="<%= social_image_url %>">
+    <meta property="og:image:secure_url" content="<%= social_image_url %>">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="hushpair: private one-to-one text chat">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= meta_title %>">
+    <meta name="twitter:description" content="<%= meta_description %>">
+    <meta name="twitter:image" content="<%= social_image_url %>">
+    <meta name="twitter:image:alt" content="hushpair: private one-to-one text chat">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= action_cable_meta_tag %>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">hushpair</title>
+  <desc id="desc">hushpair social preview image.</desc>
+
+  <rect width="1200" height="630" fill="#f7f5ef"/>
+  <circle cx="1050" cy="110" r="230" fill="#cdebe4" opacity="0.55"/>
+  <circle cx="140" cy="550" r="240" fill="#4da6a6" opacity="0.10"/>
+
+  <g transform="translate(155 176) scale(1.42)">
+    <circle cx="54" cy="28" r="14" fill="#0b132b"/>
+    <path d="M22 84C22 55 36 38 57 38C78 38 92 55 92 84V145H22V84Z" fill="#0b132b"/>
+    <circle cx="121" cy="28" r="14" fill="#4da6a6"/>
+    <path d="M89 84C89 55 103 38 124 38C145 38 159 55 159 84V145H89V84Z" fill="#4da6a6"/>
+    <path d="M83 54C99 61 113 79 113 104C113 120 107 134 97 145H83C73 134 67 120 67 104C67 79 67 61 83 54Z" fill="#081127" fill-opacity="0.82"/>
+  </g>
+
+  <text x="430" y="315" fill="#0b132b" font-family="serif" font-size="124" letter-spacing="-4">hushpair</text>
+  <text x="438" y="384" fill="#586372" font-family="sans-serif" font-size="32">Private one-to-one text chat. No accounts, no feeds, no audience.</text>
+  <text x="438" y="438" fill="#327f82" font-family="sans-serif" font-size="24" font-weight="700" letter-spacing="2">TEMPORARY BY DESIGN</text>
+</svg>
