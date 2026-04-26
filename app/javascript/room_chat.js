@@ -188,9 +188,19 @@ const initRoomChat = (root) => {
 
       if (!response.ok) return
       const payload = await response.json()
-      if (payload.room?.status) updateComposerState(payload.room.status, payload.room.expiry_summary, payload.room.expires_at)
+      if (payload.room?.status) {
+        updateComposerState(payload.room.status, payload.room.expiry_summary, payload.room.expires_at)
+        redirectToMatchIfNeeded(payload.room)
+      }
     } catch (_) {
     }
+  }
+
+  const redirectToMatchIfNeeded = (room) => {
+    if (!room.match_url) return
+    if (Number(room.next_match_started_by_participant_id) === localParticipantId) return
+
+    window.location.href = room.match_url
   }
 
   const pingPresence = async () => {
@@ -414,12 +424,7 @@ const initRoomChat = (root) => {
 
           if (data.type === "room.updated" && data.room) {
             updateComposerState(data.room.status, data.room.expiry_summary, data.room.expires_at)
-            if (
-              data.room.match_url &&
-              Number(data.room.next_match_started_by_participant_id) !== localParticipantId
-            ) {
-              window.location.href = data.room.match_url
-            }
+            redirectToMatchIfNeeded(data.room)
           }
         }
       }

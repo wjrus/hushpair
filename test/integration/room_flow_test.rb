@@ -352,6 +352,12 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     second_queue_entry = MatchQueueEntry.current_for(AnonymousSession.find(second_session_id))
     assert_predicate second_queue_entry, :queued?
 
+    second.get api_v1_room_path(original_room.public_id), as: :json
+    assert_equal 200, second.response.status
+    payload = JSON.parse(second.response.body)
+    assert_equal "ended", payload.dig("room", "status")
+    assert_equal match_path(reason: "next"), payload.dig("room", "match_url")
+
     second.get match_path(reason: "next")
     assert_match "back in line", second.response.body
   end

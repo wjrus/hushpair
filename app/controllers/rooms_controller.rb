@@ -342,7 +342,14 @@ class RoomsController < ApplicationController
     RoomChannel.broadcast_to(room, type: "room.updated", room: {
       status: room.status,
       expires_at: room.expires_at&.iso8601,
-      expiry_summary: room.expiry_summary
+      expiry_summary: room.expiry_summary,
+      match_url: next_match_redirect_path_for(room)
     }.merge(extra_room_payload))
+  end
+
+  def next_match_redirect_path_for(room)
+    return unless room.random_match? && room.ended? && room.end_reason == "ended_by_next_match"
+
+    match_path(reason: "next")
   end
 end
