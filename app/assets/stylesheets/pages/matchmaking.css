@@ -4,7 +4,7 @@
 }
 
 .match-card {
-  width: min(36rem, 100%);
+  width: min(48rem, 100%);
   display: grid;
   gap: 0.8rem;
 }
