@@ -1,4 +1,5 @@
 const POLL_INTERVAL_MS = 2000
+const TRANSIENT_STATUS_MIN = 500
 
 let matchPollInstalled = false
 
@@ -31,6 +32,8 @@ const installMatchmakingWaiting = () => {
       }
 
       if (!response.ok) {
+        if (response.status >= TRANSIENT_STATUS_MIN) return
+
         window.location.reload()
         return
       }
