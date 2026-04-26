@@ -15,6 +15,10 @@
       room_expiry_summary: @room_expiry_summary %>
   <% end %>
 
+  <% if @room_unavailable %>
+    <%= render "unavailable_room", room: @room %>
+  <% end %>
+
   <% if @participant.present? %>
     <%= render "chat_card",
       room: @room,

@@ -1,0 +1,20 @@
+<section class="card utility-card utility-card-centered">
+  <% if room.expired? %>
+    <h1>Chat expired</h1>
+    <p class="compact-lede">This chat is no longer available.</p>
+  <% elsif room.ended? %>
+    <h1>Chat ended</h1>
+    <p class="compact-lede">This chat has already been closed.</p>
+  <% elsif room.random_match? %>
+    <h1>Chat unavailable</h1>
+    <p class="compact-lede">Matched chats are temporary and can only be opened by the two browsers that joined them.</p>
+  <% else %>
+    <h1>Invite unavailable</h1>
+    <p class="compact-lede">This private chat link is missing, expired, or has already been used.</p>
+  <% end %>
+
+  <div class="utility-actions">
+    <%= link_to "Start a new chat", root_path, class: "button" %>
+    <%= link_to "Find someone available", match_path, class: "button button-secondary" %>
+  </div>
+</section>

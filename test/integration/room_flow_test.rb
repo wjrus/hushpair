@@ -77,6 +77,30 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_no_match "data-chat-room-public-id", creator.response.body
   end
 
+  test "missing room slug shows a friendly unavailable page" do
+    get room_path("cedar-muted-tide-willow")
+
+    assert_equal 404, response.status
+    assert_match "Chat not found", response.body
+    assert_match "Start a new chat", response.body
+  end
+
+  test "ended matched room without participant access shows a friendly unavailable page" do
+    room = Room.create!(
+      expires_at: 1.minute.ago,
+      last_message_at: 10.minutes.ago,
+      max_participants: 2,
+      mode: :random_match,
+      status: :ended
+    )
+
+    get room_path(room)
+
+    assert_equal 200, response.status
+    assert_match "Chat ended", response.body
+    assert_no_match "data-chat-room-public-id", response.body
+  end
+
   test "bookmark links do not restore a participant in a different browser session" do
     creator = open_session
     creator.post api_v1_rooms_path, params: { nickname: "Quiet Fox" }, as: :json

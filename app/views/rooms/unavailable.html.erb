@@ -1,0 +1,13 @@
+<% content_for :title, "Chat not found" %>
+
+<main class="shell room-shell" id="main-content">
+  <section class="card utility-card utility-card-centered">
+    <h1>Chat not found</h1>
+    <p class="compact-lede">This chat does not exist, has expired, or has already been cleaned up.</p>
+
+    <div class="utility-actions">
+      <%= link_to "Start a new chat", root_path, class: "button" %>
+      <%= link_to "Find someone available", match_path, class: "button button-secondary" %>
+    </div>
+  </section>
+</main>

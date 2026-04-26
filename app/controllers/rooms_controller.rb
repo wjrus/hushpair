@@ -1,7 +1,10 @@
 class RoomsController < ApplicationController
-  before_action :set_room, only: [ :show, :join, :update_retention, :leave, :next_match, :report ]
+  before_action :set_room_for_show, only: :show
+  before_action :set_room, only: [ :join, :update_retention, :leave, :next_match, :report ]
 
   def show
+    return render_room_not_found unless @room.present?
+
     @room.expire_if_needed!
     load_room_view_state!
   end
@@ -109,6 +112,11 @@ class RoomsController < ApplicationController
 
   private
 
+  def set_room_for_show
+    @room = Room.find_by(slug: params[:slug])
+    @room&.expire_if_needed!
+  end
+
   def set_room
     @room = Room.find_by!(slug: params[:slug])
     @room.expire_if_needed!
@@ -120,6 +128,7 @@ class RoomsController < ApplicationController
     remember_room_invitation!(room: @room, raw_token: params[:invite_token]) if @participant&.creator? && @invitation.present?
     @joinable = joinable_invitation?
     @invite_preview = @joinable
+    @room_unavailable = @participant.blank? && !@invite_preview
     @messages = @participant.present? ? ordered_room_messages : Message.none
     @chat_open = @participant.present? && @room.accessible?
     @participant_return_token = @participant.present? ? participant_return_token_for(@room) : nil
@@ -131,6 +140,10 @@ class RoomsController < ApplicationController
     @room_display_name = @room.slug.tr("-", " ")
     @presence_conflict = flash.now[:alert] == "This bookmark is already open in another browser."
     @bookmark_restricted = flash.now[:alert] == "This bookmark only works in the browser that joined this room."
+  end
+
+  def render_room_not_found
+    render :unavailable, status: :not_found
   end
 
   def current_room_participant
