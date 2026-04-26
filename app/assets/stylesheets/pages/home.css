@@ -31,6 +31,15 @@
   width: 100%;
 }
 
+.home-join-note {
+  margin-top: 0.9rem;
+}
+
+.home-join-note p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .home-room-list {
   margin-top: 1rem;
 }

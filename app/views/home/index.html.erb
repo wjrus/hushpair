@@ -9,6 +9,17 @@
   </section>
 
   <section class="card-grid">
+    <section class="card">
+      <h2>Create a private room</h2>
+      <p>Share the invite link with someone you want to message. They'll follow the link to enter the room.</p>
+
+      <%= form_with url: rooms_path, method: :post, class: "stack" do |form| %>
+        <%= form.label :nickname, "Nickname (optional)" %>
+        <%= form.text_field :nickname, maxlength: 40, placeholder: "Quiet Fox" %>
+        <%= form.submit "Create private chat", class: "button" %>
+      <% end %>
+    </section>
+
     <section class="card home-match-card">
       <p class="eyebrow">Or match now</p>
       <h2>Meet the next available person</h2>
@@ -26,22 +37,10 @@
         <% end %>
       <% end %>
     </section>
+  </section>
 
-    <section class="card">
-      <h2>Create a private room</h2>
-      <p>Create a private room, share the invite, and enter when you're ready.</p>
-
-      <%= form_with url: rooms_path, method: :post, class: "stack" do |form| %>
-        <%= form.label :nickname, "Nickname (optional)" %>
-        <%= form.text_field :nickname, maxlength: 40, placeholder: "Quiet Fox" %>
-        <%= form.submit "Create private chat", class: "button" %>
-      <% end %>
-    </section>
-
-    <section class="card">
-      <h2>Join with a link</h2>
-      <p>Open the private invite you received to enter the room.</p>
-    </section>
+  <section class="card home-join-note">
+    <p><strong>Joining a private room:</strong> open the invite link you received.</p>
   </section>
 
   <% if @open_room_participations.any? %>
