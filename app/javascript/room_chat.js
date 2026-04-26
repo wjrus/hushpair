@@ -1,6 +1,7 @@
 import consumer from "channels/consumer"
 
 const MATCH_ROOM_STATE_INTERVAL_MS = 5000
+const MATCH_REDIRECT_DELAY_MS = 1300
 
 const initializedRoots = new WeakSet()
 
@@ -52,6 +53,7 @@ const initRoomChat = (root) => {
   let presenceInterval = null
   let expiryTimeout = null
   let pendingConfirmForm = null
+  let matchRedirectScheduled = false
   const renderedSequences = new Set(
     Array.from(list.querySelectorAll(".message-row")).map((row) => Number(row.dataset.sequenceNumber)).filter(Number.isFinite)
   )
@@ -113,6 +115,26 @@ const initRoomChat = (root) => {
     emptyState.classList.add("is-hidden")
     renderedSequences.add(sequenceNumber)
     lastSeq = Math.max(lastSeq, sequenceNumber)
+  }
+
+  const appendSystemNotice = (message) => {
+    if (!message) return
+
+    const item = document.createElement("li")
+    item.className = "message-row message-row-system"
+
+    const shell = document.createElement("div")
+    shell.className = "message-shell"
+
+    const body = document.createElement("span")
+    body.className = "message-body"
+    body.textContent = message
+
+    shell.append(body)
+    item.append(shell)
+    list.append(item)
+    list.scrollTop = list.scrollHeight
+    emptyState.classList.add("is-hidden")
   }
 
   const updateComposerState = (status, expirySummary = null, nextExpiresAt = null) => {
@@ -210,8 +232,13 @@ const initRoomChat = (root) => {
   const redirectToMatchIfNeeded = (room) => {
     if (!room.match_url) return
     if (Number(room.next_match_started_by_participant_id) === localParticipantId) return
+    if (matchRedirectScheduled) return
 
-    window.location.href = room.match_url
+    matchRedirectScheduled = true
+    appendSystemNotice(room.system_notice || "Your chat partner moved on. Looking for someone new...")
+    window.setTimeout(() => {
+      window.location.href = room.match_url
+    }, MATCH_REDIRECT_DELAY_MS)
   }
 
   const pingPresence = async () => {

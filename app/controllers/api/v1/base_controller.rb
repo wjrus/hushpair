@@ -47,6 +47,7 @@ class Api::V1::BaseController < ActionController::API
       expiry_summary: room.expiry_summary,
       ended_at: room.ended_at&.iso8601,
       match_url: next_match_redirect_path_for(room),
+      system_notice: next_match_system_notice_for(room),
       participant_count: room.room_participants.count,
       participant: participant && participant_payload(participant)
     }.compact
@@ -56,6 +57,12 @@ class Api::V1::BaseController < ActionController::API
     return unless room.random_match? && room.ended? && room.end_reason == "ended_by_next_match"
 
     Rails.application.routes.url_helpers.match_path(reason: "next")
+  end
+
+  def next_match_system_notice_for(room)
+    return unless room.random_match? && room.ended? && room.end_reason == "ended_by_next_match"
+
+    "Your chat partner moved on. Looking for someone new..."
   end
 
   def participant_payload(participant)

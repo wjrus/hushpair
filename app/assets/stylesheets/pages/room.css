@@ -453,6 +453,24 @@
   border-color: color-mix(in srgb, var(--link) 42%, var(--line));
 }
 
+.message-row-system {
+  justify-self: center;
+  width: min(92%, 34rem);
+  text-align: center;
+}
+
+.message-row-system .message-shell {
+  display: inline-grid;
+  background: color-mix(in srgb, var(--accent-soft) 64%, var(--panel));
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+}
+
+.message-row-system .message-body {
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
 .message-body {
   line-height: 1.35;
   white-space: pre-wrap;

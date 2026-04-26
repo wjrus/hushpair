@@ -405,6 +405,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     payload = JSON.parse(second.response.body)
     assert_equal "ended", payload.dig("room", "status")
     assert_equal match_path(reason: "next"), payload.dig("room", "match_url")
+    assert_equal "Your chat partner moved on. Looking for someone new...", payload.dig("room", "system_notice")
 
     second.get match_path(reason: "next")
     assert_match "back in line", second.response.body

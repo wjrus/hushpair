@@ -92,7 +92,8 @@ class RoomsController < ApplicationController
     broadcast_room_update!(
       @room,
       next_match_started_by_participant_id: participant.id,
-      match_url: match_path(reason: "next")
+      match_url: match_path(reason: "next"),
+      system_notice: next_match_system_notice_for(@room)
     )
 
     if result.matched?
@@ -343,7 +344,8 @@ class RoomsController < ApplicationController
       status: room.status,
       expires_at: room.expires_at&.iso8601,
       expiry_summary: room.expiry_summary,
-      match_url: next_match_redirect_path_for(room)
+      match_url: next_match_redirect_path_for(room),
+      system_notice: next_match_system_notice_for(room)
     }.merge(extra_room_payload))
   end
 
@@ -351,5 +353,11 @@ class RoomsController < ApplicationController
     return unless room.random_match? && room.ended? && room.end_reason == "ended_by_next_match"
 
     match_path(reason: "next")
+  end
+
+  def next_match_system_notice_for(room)
+    return unless room.random_match? && room.ended? && room.end_reason == "ended_by_next_match"
+
+    "Your chat partner moved on. Looking for someone new..."
   end
 end
