@@ -25,6 +25,7 @@ module Matchmaking
       MatchPair.expire_due!(now: @now)
 
       ActiveRecord::Base.transaction do
+        @session.lock!
         current_entry = MatchQueueEntry.lock.where(id: MatchQueueEntry.current_for(@session)&.id).first
         return matched_result_for(current_entry) if current_entry&.matched? && current_entry.matched_room&.accessible?
 

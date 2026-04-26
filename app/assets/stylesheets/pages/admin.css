@@ -144,7 +144,7 @@
 }
 
 .admin-live-grid {
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr) minmax(0, 0.8fr);
   margin-bottom: 1rem;
 }
 
@@ -191,6 +191,38 @@
 .admin-room-snapshot__legend p {
   margin: 0;
   color: var(--muted);
+}
+
+.admin-key-values {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.admin-key-values div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+}
+
+.admin-key-values div:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.admin-key-values dt,
+.admin-key-values dd {
+  margin: 0;
+}
+
+.admin-key-values dt {
+  color: var(--muted);
+}
+
+.admin-key-values dd {
+  font-weight: 700;
 }
 
 .admin-charts-grid {

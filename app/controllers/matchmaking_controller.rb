@@ -5,6 +5,7 @@ class MatchmakingController < ApplicationController
     @queue_entry = current_queue_entry
     return redirect_to(root_path, alert: "Start matching from the home page.") unless @queue_entry
 
+    @match_reason = params[:reason].presence_in(%w[next])
     @queue_entry.expire_if_needed!
     return redirect_to(root_path, alert: "That match request expired.") if @queue_entry.expired?
 

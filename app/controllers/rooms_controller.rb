@@ -91,7 +91,7 @@ class RoomsController < ApplicationController
     broadcast_room_update!(
       @room,
       next_match_started_by_participant_id: participant.id,
-      match_url: match_path
+      match_url: match_path(reason: "next")
     )
 
     if result.matched?

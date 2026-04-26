@@ -48,6 +48,15 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
       expires_at: now + 9.minutes,
       status: :queued
     )
+    ended_room = Room.create!(
+      created_at: now - 3.hours,
+      ended_at: now - 5.minutes,
+      end_reason: "ended_by_next_match",
+      expires_at: now - 5.minutes,
+      max_participants: 2,
+      mode: :random_match,
+      status: :ended
+    )
 
     metrics = Admin::DashboardMetrics.new(preset: "24h", start_date: nil, end_date: nil, now: now)
 
@@ -57,8 +66,10 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Messages sent" }[:value]
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Reports filed" }[:value]
     assert_equal 1, metrics.current_summary.find { |card| card[:label] == "Matching now" }[:value]
+    assert metrics.current_summary.find { |card| card[:label] == "Connected browsers" }.present?
+    assert_equal({ "ended_by_next_match" => 1 }, metrics.room_end_reason_snapshot)
     assert_equal 3, metrics.charts.size
-    assert_equal [ active_room.id, waiting_room.id ], metrics.recent_rooms.map(&:id)
+    assert_equal [ active_room.id, waiting_room.id, ended_room.id ], metrics.recent_rooms.map(&:id)
     assert_equal [ "test" ], metrics.recent_reports.map(&:reason)
   end
 end

@@ -69,8 +69,18 @@ module Admin
         static_card("Waiting now", snapshot[:waiting], tone: "default"),
         static_card("Active now", snapshot[:active], tone: "accent"),
         static_card("Matching now", MatchQueueEntry.queued_ready(@now).count, tone: "default"),
+        static_card("Connected browsers", ParticipantPresenceRegistry.active_instance_count, tone: "accent"),
         static_card("Rooms ended today", Room.where(ended_at: @now.beginning_of_day..@now).count, tone: "default")
       ]
+    end
+
+    def room_end_reason_snapshot
+      Room.closed_statuses
+        .where(ended_at: range_window)
+        .group(:end_reason)
+        .order(Arel.sql("COUNT(*) DESC"))
+        .count
+        .transform_keys { |reason| reason.presence || "unspecified" }
     end
 
     def charts

@@ -10,6 +10,8 @@ cd "$APP_DIR"
 git pull
 ./script/update-env
 docker compose build web
+docker compose up -d db redis
+docker compose run --rm --no-deps web bin/rails db:migrate
 docker compose up -d web
 docker compose logs --tail=100 web
 sleep 1

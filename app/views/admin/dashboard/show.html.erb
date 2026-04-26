@@ -74,6 +74,29 @@
         </article>
       <% end %>
     </section>
+
+    <article class="admin-panel">
+      <div class="admin-panel__header">
+        <div>
+          <h2>Room end reasons</h2>
+          <p>Closed rooms in the selected range.</p>
+        </div>
+      </div>
+
+      <% end_reasons = @metrics.room_end_reason_snapshot %>
+      <% if end_reasons.any? %>
+        <dl class="admin-key-values">
+          <% end_reasons.each do |reason, count| %>
+            <div>
+              <dt><%= reason.to_s.humanize %></dt>
+              <dd><%= number_with_delimiter(count) %></dd>
+            </div>
+          <% end %>
+        </dl>
+      <% else %>
+        <p class="admin-panel__empty">No closed rooms in this range.</p>
+      <% end %>
+    </article>
   </section>
 
   <section class="admin-charts-grid">

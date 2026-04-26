@@ -192,6 +192,17 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_not payload.key?("queue_size")
   end
 
+  test "repeated match requests keep one active queue entry for the browser" do
+    seeker = open_session
+
+    assert_difference -> { MatchQueueEntry.queued.count }, 1 do
+      seeker.post match_path, params: { nickname: "Quiet Fox" }
+      seeker.post match_path, params: { nickname: "Quiet Fox" }
+    end
+
+    assert_equal 1, MatchQueueEntry.queued.count
+  end
+
   test "next from a matched chat avoids rematching the same pair too quickly" do
     first = open_session
     first.post match_path, params: { nickname: "Quiet Fox" }
@@ -225,6 +236,9 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
 
     second_queue_entry = MatchQueueEntry.current_for(AnonymousSession.find(second_session_id))
     assert_predicate second_queue_entry, :queued?
+
+    second.get match_path(reason: "next")
+    assert_match "back in line", second.response.body
   end
 
   test "matching flow can be cancelled" do

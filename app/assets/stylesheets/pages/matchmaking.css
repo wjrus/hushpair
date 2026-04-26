@@ -36,6 +36,14 @@
   color: var(--muted);
 }
 
+.match-note {
+  margin: 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-soft);
+}
+
 .match-meta-grid {
   margin-top: 0.15rem;
 }

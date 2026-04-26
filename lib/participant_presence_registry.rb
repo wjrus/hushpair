@@ -29,6 +29,12 @@ class ParticipantPresenceRegistry
       end
     end
 
+    def active_instance_count
+      with_redis(default: 0) do |client|
+        client.scan_each(match: "hushpair:presence:room:*:participant:*:instance:*").count
+      end
+    end
+
     private
 
     def active_instance_keys(room:, participant:)

@@ -11,6 +11,9 @@
     <p class="lede">
       hushpair will drop you into a private one-to-one room as soon as another person is ready.
     </p>
+    <% if @match_reason == "next" %>
+      <p class="form-note match-note">That chat ended, so you are back in line for a new match.</p>
+    <% end %>
 
     <div class="match-status">
       <span class="match-status__dot" aria-hidden="true"></span>
