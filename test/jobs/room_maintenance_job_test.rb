@@ -87,6 +87,11 @@ class RoomMaintenanceJobTest < ActiveJob::TestCase
         queued_at: 3.hours.ago,
         status: :matched
       )
+      stale_match_pair = retained_room.match_pairs.create!(
+        pair_digest: SecureRandom.hex(32),
+        matched_at: 2.hours.ago,
+        expires_at: 5.minutes.ago
+      )
 
       RoomMaintenanceJob.perform_now(now: Time.current)
 
@@ -96,6 +101,7 @@ class RoomMaintenanceJobTest < ActiveJob::TestCase
       assert_not Room.exists?(stale_closed_room.id)
       assert_equal "expired", stale_queue_entry.reload.status
       assert_equal "expired", stale_matched_entry.reload.status
+      assert_not MatchPair.exists?(stale_match_pair.id)
       assert participant.reload.left_at.nil?
     end
   end

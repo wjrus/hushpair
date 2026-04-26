@@ -109,6 +109,12 @@
               <%= submit_tag "Report and End", class: "button button-secondary button-compact" %>
             <% end %>
           </details>
+          <% if room.random_match? %>
+            <%= form_with url: next_room_path(room), method: :post, data: { chat_confirm: "Leave this chat and look for someone new?" } do %>
+              <%= hidden_field_tag :participant_token, participant_return_token if participant_return_token.present? %>
+              <%= submit_tag "Next", class: "button button-secondary button-compact" %>
+            <% end %>
+          <% end %>
           <%= form_with url: leave_room_path(room), method: :post, data: { chat_confirm: "End this chat for both people?" } do %>
             <%= hidden_field_tag :participant_token, participant_return_token if participant_return_token.present? %>
             <%= submit_tag "End chat", class: "button button-secondary button-compact" %>

@@ -128,6 +128,10 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     first.get match_path
     assert_equal 302, first.response.status
     assert_equal room_url(matched_room), first.response.location
+
+    first.get room_path(matched_room)
+    assert_match "data-chat-participant-token", first.response.body
+    assert_no_match "Bookmark", first.response.body
   end
 
   test "matching status endpoint returns matched room url for waiting browser" do
@@ -147,6 +151,41 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     payload = JSON.parse(first.response.body)
     assert_equal "matched", payload.fetch("status")
     assert_equal room_path(matched_room), payload.fetch("room_url")
+  end
+
+  test "next from a matched chat avoids rematching the same pair too quickly" do
+    first = open_session
+    first.post match_path, params: { nickname: "Quiet Fox" }
+    first_session = MatchQueueEntry.order(:created_at).last.anonymous_session
+
+    second = open_session
+    second.post match_path, params: { nickname: "Night Owl" }
+    original_room = Room.order(:created_at).last
+    second_session_id = original_room.room_participants.where.not(anonymous_session: first_session).pick(:anonymous_session_id)
+
+    first.get match_path
+    assert_equal room_url(original_room), first.response.location
+
+    third = open_session
+    third.post match_path, params: { nickname: "Pine Finch" }
+    third_session = MatchQueueEntry.queued.order(:created_at).last.anonymous_session
+
+    assert_difference -> { MatchPair.count }, 1 do
+      first.post next_room_path(original_room)
+    end
+
+    new_room = Room.random_match.order(:created_at).last
+    new_session_ids = new_room.room_participants.pluck(:anonymous_session_id)
+
+    assert_equal 302, first.response.status
+    assert_equal room_url(new_room), first.response.location
+    assert_equal "ended", original_room.reload.status
+    assert_includes new_session_ids, first_session.id
+    assert_includes new_session_ids, third_session.id
+    assert_not_includes new_session_ids, second_session_id
+
+    second_queue_entry = MatchQueueEntry.current_for(AnonymousSession.find(second_session_id))
+    assert_predicate second_queue_entry, :queued?
   end
 
   test "matching flow can be cancelled" do

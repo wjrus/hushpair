@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     post :join, on: :member
     patch :retention, on: :member, action: :update_retention
     post :leave, on: :member
+    post :next, on: :member, action: :next_match
     post :report, on: :member
   end
 

@@ -4,6 +4,7 @@ class RoomMaintenanceJob < ApplicationJob
   def perform(now: Time.current)
     expired_rooms = Room.expire_due!(now: now)
     expired_queue_entries = MatchQueueEntry.expire_due!(now: now)
+    expired_match_pairs = MatchPair.expire_due!(now: now)
     trimmed_messages = trim_retained_messages(now: now)
     purged_rooms = Room.purge_closed_before!(Room.closed_purge_cutoff(now: now))
 
@@ -12,7 +13,7 @@ class RoomMaintenanceJob < ApplicationJob
     end
 
     Rails.logger.info(
-      "[hushpair.maintenance] expired_rooms=#{expired_rooms.size} expired_queue_entries=#{expired_queue_entries} trimmed_messages=#{trimmed_messages} purged_rooms=#{purged_rooms}"
+      "[hushpair.maintenance] expired_rooms=#{expired_rooms.size} expired_queue_entries=#{expired_queue_entries} expired_match_pairs=#{expired_match_pairs} trimmed_messages=#{trimmed_messages} purged_rooms=#{purged_rooms}"
     )
   end
 

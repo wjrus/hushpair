@@ -1,5 +1,5 @@
 class RoomsController < ApplicationController
-  before_action :set_room, only: [ :show, :join, :update_retention, :leave, :report ]
+  before_action :set_room, only: [ :show, :join, :update_retention, :leave, :next_match, :report ]
 
   def show
     @room.expire_if_needed!
@@ -72,6 +72,33 @@ class RoomsController < ApplicationController
     end_room_from(participant:, notice: "Chat ended.")
   end
 
+  def next_match
+    participant = current_room_participant
+    return redirect_with_alert("You are not currently in this chat.") unless participant.present?
+    return redirect_to(room_path(@room), alert: "Next is only available for matched chats.") unless @room.random_match?
+
+    session = current_anonymous_session || participant.anonymous_session
+    nickname = participant.nickname
+
+    @room.end_chat!(participant:, reason: "ended_by_next_match")
+    forget_room_participant!(room: @room)
+
+    result = Matchmaking::JoinQueue.call(session:, nickname:)
+    requeue_other_match_participants!(participant)
+    broadcast_room_update!(
+      @room,
+      next_match_started_by_participant_id: participant.id,
+      match_url: match_path
+    )
+
+    if result.matched?
+      remember_room_participant!(room: result.room, raw_token: result.participant_token) if result.participant_token.present?
+      redirect_to room_path(result.room), notice: "Matched with someone new."
+    else
+      redirect_to match_path, notice: "Looking for someone new."
+    end
+  end
+
   def report
     participant = current_room_participant
     return redirect_with_alert("You are not currently in this chat.") unless participant.present?
@@ -96,7 +123,7 @@ class RoomsController < ApplicationController
     @messages = @participant.present? ? ordered_room_messages : Message.none
     @chat_open = @participant.present? && @room.accessible?
     @participant_return_token = @participant.present? ? participant_return_token_for(@room) : nil
-    @participant_return_url = @participant.present? ? room_url(@room, participant_token: @participant_return_token) : nil
+    @participant_return_url = @participant_return_token.present? && @room.invite_only? ? room_url(@room, participant_token: @participant_return_token) : nil
     @share_invite_url = share_invite_url_for(@room, @participant)
     @retention_options = retention_mode_options
     @room_expiry_summary = @room.expiry_summary
@@ -284,11 +311,22 @@ class RoomsController < ApplicationController
     redirect_to root_path, notice: notice
   end
 
-  def broadcast_room_update!(room)
+  def requeue_other_match_participants!(participant)
+    return unless @room.random_match?
+
+    @room.room_participants.where.not(id: participant.id).find_each do |other_participant|
+      Matchmaking::JoinQueue.call(
+        session: other_participant.anonymous_session,
+        nickname: other_participant.nickname
+      )
+    end
+  end
+
+  def broadcast_room_update!(room, extra_room_payload = {})
     RoomChannel.broadcast_to(room, type: "room.updated", room: {
       status: room.status,
       expires_at: room.expires_at&.iso8601,
       expiry_summary: room.expiry_summary
-    })
+    }.merge(extra_room_payload))
   end
 end

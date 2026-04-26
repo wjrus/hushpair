@@ -22,6 +22,7 @@ module Matchmaking
 
     def call
       MatchQueueEntry.expire_due!(now: @now)
+      MatchPair.expire_due!(now: @now)
 
       ActiveRecord::Base.transaction do
         current_entry = MatchQueueEntry.lock.where(id: MatchQueueEntry.current_for(@session)&.id).first
@@ -40,8 +41,9 @@ module Matchmaking
       MatchQueueEntry
         .queued_ready(@now)
         .where.not(anonymous_session_id: @session.id)
+        .includes(:anonymous_session)
         .lock("FOR UPDATE SKIP LOCKED")
-        .first
+        .detect { |entry| !recently_matched?(entry.anonymous_session) }
     end
 
     def queue_result_for(current_entry)
@@ -65,6 +67,7 @@ module Matchmaking
 
       update_entry!(opponent, room)
       update_entry!(current_entry || @session.match_queue_entries.build(queued_at: @now), room)
+      MatchPair.record!(room:, first_session: @session, second_session: opponent.anonymous_session, now: @now)
 
       Result.new(state: :matched, room:, participant_token:, queue_entry: current_entry)
     end
@@ -107,6 +110,10 @@ module Matchmaking
 
     def matched_result_for(entry)
       Result.new(state: :matched, room: entry.matched_room, queue_entry: entry)
+    end
+
+    def recently_matched?(opponent_session)
+      MatchPair.recent_between?(@session, opponent_session, now: @now)
     end
   end
 end

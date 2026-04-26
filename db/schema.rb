@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_25_153000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_25_170000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -27,6 +27,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_25_153000) do
     t.string "user_agent_hash"
     t.index ["public_id"], name: "index_anonymous_sessions_on_public_id", unique: true
     t.index ["session_token_digest"], name: "index_anonymous_sessions_on_session_token_digest", unique: true
+  end
+
+  create_table "match_pairs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.datetime "matched_at", null: false
+    t.string "pair_digest", null: false
+    t.bigint "room_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["matched_at"], name: "index_match_pairs_on_matched_at"
+    t.index ["pair_digest", "expires_at"], name: "index_match_pairs_on_pair_digest_and_expires_at"
+    t.index ["room_id"], name: "index_match_pairs_on_room_id"
   end
 
   create_table "match_queue_entries", force: :cascade do |t|
@@ -128,6 +140,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_25_153000) do
     t.index ["status", "expires_at"], name: "index_rooms_on_status_and_expires_at"
   end
 
+  add_foreign_key "match_pairs", "rooms"
   add_foreign_key "match_queue_entries", "anonymous_sessions"
   add_foreign_key "match_queue_entries", "rooms", column: "matched_room_id"
   add_foreign_key "messages", "room_participants"

@@ -7,6 +7,7 @@ class Room < ApplicationRecord
   has_many :room_invitations, dependent: :destroy
   has_many :room_participants, dependent: :destroy
   has_many :anonymous_sessions, through: :room_participants
+  has_many :match_pairs, dependent: :destroy
   has_many :messages, dependent: :destroy
   has_many :moderation_events, dependent: :destroy
 

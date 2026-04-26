@@ -404,6 +404,12 @@ const initRoomChat = (root) => {
 
           if (data.type === "room.updated" && data.room) {
             updateComposerState(data.room.status, data.room.expiry_summary, data.room.expires_at)
+            if (
+              data.room.match_url &&
+              Number(data.room.next_match_started_by_participant_id) !== localParticipantId
+            ) {
+              window.location.href = data.room.match_url
+            }
           }
         }
       }
