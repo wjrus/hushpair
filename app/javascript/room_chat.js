@@ -1,6 +1,7 @@
 import consumer from "channels/consumer"
 
 const MATCH_ROOM_STATE_INTERVAL_MS = 5000
+const MATCH_EXPIRY_FALLBACK_REDIRECT_MS = 900
 const MATCH_REDIRECT_DELAY_MS = 1300
 
 const initializedRoots = new WeakSet()
@@ -54,6 +55,7 @@ const initRoomChat = (root) => {
   let presenceInterval = null
   let expiryTimeout = null
   let pendingConfirmForm = null
+  let expiryHandled = false
   let matchRedirectScheduled = false
   const renderedSequences = new Set(
     Array.from(list.querySelectorAll(".message-row")).map((row) => Number(row.dataset.sequenceNumber)).filter(Number.isFinite)
@@ -65,13 +67,42 @@ const initRoomChat = (root) => {
 
     const delay = new Date(expiresAt).getTime() - Date.now()
     if (delay <= 0) {
-      updateComposerState("expired", "Expired", expiresAt)
+      handleRoomDeadline()
       return
     }
 
     expiryTimeout = window.setTimeout(() => {
-      updateComposerState("expired", "Expired", expiresAt)
+      handleRoomDeadline()
     }, delay + 50)
+  }
+
+  const handleRoomDeadline = () => {
+    if (expiryHandled) return
+    expiryHandled = true
+
+    if (resilientRoomStateEnabled && fallbackMatchUrl) {
+      syncRoomState()
+      window.setTimeout(() => {
+        if (matchRedirectScheduled) return
+
+        matchRedirectScheduled = true
+        appendSystemNotice("This chat ended. Looking for someone new...")
+        window.location.href = fallbackMatchUrl
+      }, MATCH_EXPIRY_FALLBACK_REDIRECT_MS)
+      return
+    }
+
+    markRoomExpired()
+  }
+
+  const markRoomExpired = () => {
+    roomPill.textContent = "expired"
+    roomOpen = false
+    bodyInput.disabled = true
+    sendButton.disabled = true
+    if (roomExpirySummary) roomExpirySummary.textContent = "Expired"
+    updateHeaderLink("expired")
+    setFeedback("This room is closed for new messages.", false)
   }
 
   const setFeedback = (message, isError = false) => {
@@ -144,7 +175,10 @@ const initRoomChat = (root) => {
     bodyInput.disabled = !roomOpen
     sendButton.disabled = !roomOpen || isSending
     if (roomExpirySummary && expirySummary) roomExpirySummary.textContent = expirySummary
-    if (nextExpiresAt) expiresAt = nextExpiresAt
+    if (nextExpiresAt) {
+      expiresAt = nextExpiresAt
+      if (new Date(nextExpiresAt).getTime() > Date.now()) expiryHandled = false
+    }
     updateHeaderLink(status)
     scheduleExpiryTimeout()
 
@@ -241,6 +275,9 @@ const initRoomChat = (root) => {
     if (matchRedirectScheduled) return
 
     matchRedirectScheduled = true
+    stopFallbackSync()
+    stopResilientRoomStateSync()
+    stopPresenceHeartbeat()
     appendSystemNotice(room.system_notice || "Your chat partner moved on. Looking for someone new...")
     window.setTimeout(() => {
       window.location.href = nextMatchUrl
