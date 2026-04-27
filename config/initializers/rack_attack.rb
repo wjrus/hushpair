@@ -61,6 +61,8 @@ ActiveSupport::Notifications.subscribe("blocklist.rack_attack") do |_name, _star
   request = payload[:request]
   next unless request
 
+  BlockedRequestStats.record!(rule: payload[:matched], path: request.path)
+
   ip_hash = if request.ip.present?
     Digest::SHA256.hexdigest("#{Rails.application.secret_key_base}:#{request.ip}")
   end

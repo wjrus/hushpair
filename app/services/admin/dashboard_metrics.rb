@@ -50,6 +50,7 @@ module Admin
         count_card("Rooms created", Room, column: :created_at, tone: "primary"),
         count_card("Messages sent", Message, column: :created_at, tone: "accent"),
         count_card("Participants joined", RoomParticipant, column: :joined_at, tone: "default"),
+        static_card("Bot probes blocked", blocked_request_count, tone: "danger"),
         moderation_count_card("Reports filed", ModerationEvent.report_submitted, tone: "danger")
       ]
     end
@@ -83,6 +84,10 @@ module Admin
         .transform_keys { |reason| reason.presence || "unspecified" }
     end
 
+    def blocked_request_snapshot
+      BlockedRequestStats.category_snapshot(start_at:, end_at:)
+    end
+
     def system_health
       [
         health_item("App", "ok", app_release_label),
@@ -97,6 +102,7 @@ module Admin
       [
         chart("Room creation rate", "New rooms opened", Room, column: :created_at, tone: "primary"),
         chart("Message volume", "Messages sent", Message, column: :created_at, tone: "accent"),
+        blocked_request_chart,
         moderation_chart
       ]
     end
@@ -167,6 +173,10 @@ module Admin
       static_card(label, model.where(column => range_window).count, tone:)
     end
 
+    def blocked_request_count
+      BlockedRequestStats.total_between(start_at:, end_at:)
+    end
+
     def moderation_count_card(label, scope, tone:)
       static_card(label, scope.where(created_at: range_window).count, tone:)
     end
@@ -204,6 +214,15 @@ module Admin
         subtitle: "#{subtitle_prefix} during #{range_label.downcase}",
         series: series_for(model, column:),
         tone:
+      }
+    end
+
+    def blocked_request_chart
+      {
+        title: "Blocked bot probes",
+        subtitle: "Known exploit probes blocked during #{range_label.downcase}",
+        series: BlockedRequestStats.series(start_at:, end_at:, bucket_unit:),
+        tone: "danger"
       }
     end
 

@@ -1,6 +1,15 @@
 require "test_helper"
 
 class AdminDashboardMetricsTest < ActiveSupport::TestCase
+  setup do
+    @previous_cache = BlockedRequestStats.instance_variable_get(:@cache)
+    BlockedRequestStats.cache = ActiveSupport::Cache::MemoryStore.new
+  end
+
+  teardown do
+    BlockedRequestStats.cache = @previous_cache
+  end
+
   test "builds aggregate counts and live room snapshot" do
     now = Time.zone.parse("2026-04-25 12:00:00")
     waiting_room = Room.create!(
@@ -57,6 +66,7 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
       mode: :random_match,
       status: :ended
     )
+    BlockedRequestStats.record!(rule: "known-exploit-probes", path: "/wp-login.php", at: now - 20.minutes)
 
     metrics = Admin::DashboardMetrics.new(preset: "24h", start_date: nil, end_date: nil, now: now)
 
@@ -65,11 +75,13 @@ class AdminDashboardMetricsTest < ActiveSupport::TestCase
     assert_equal 1, metrics.active_room_snapshot[:active]
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Messages sent" }[:value]
     assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Reports filed" }[:value]
+    assert_equal 1, metrics.summary_cards.find { |card| card[:label] == "Bot probes blocked" }[:value]
     assert_equal 1, metrics.current_summary.find { |card| card[:label] == "Matching now" }[:value]
     assert metrics.current_summary.find { |card| card[:label] == "Connected browsers" }.present?
     assert_equal({ "ended_by_next_match" => 1 }, metrics.room_end_reason_snapshot)
+    assert_equal({ "WordPress login probes" => 1 }, metrics.blocked_request_snapshot)
     assert_equal [ "App", "Database", "Redis", "Queue", "Presence" ], metrics.system_health.map { |item| item[:label] }
-    assert_equal 3, metrics.charts.size
+    assert_equal 4, metrics.charts.size
     assert_equal [ active_room.id, waiting_room.id, ended_room.id ], metrics.recent_rooms.map(&:id)
     assert_equal [ "test" ], metrics.recent_reports.map(&:reason)
   end

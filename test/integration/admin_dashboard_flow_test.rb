@@ -27,6 +27,7 @@ class AdminDashboardFlowTest < ActionDispatch::IntegrationTest
       assert_match "System health", response.body
       assert_match "Admin actions", response.body
       assert_match "Clear matching hash pairs", response.body
+      assert_match "Blocked bot probes", response.body
     end
   end
 
