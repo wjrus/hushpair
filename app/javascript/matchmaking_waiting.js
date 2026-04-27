@@ -1,8 +1,18 @@
 const POLL_INTERVAL_MS = 5000
 const STATUS_DOT_INTERVAL_MS = 3000
+const STATUS_MESSAGE_ROTATION_MS = 30000
 const TRANSIENT_STATUS_MIN = 500
 const BACKGROUND_MATCH_REDIRECT_DELAY_MS = 700
-const STATUS_MESSAGE = "Still looking for someone available"
+const STATUS_MESSAGES = [
+  "Still looking for someone available",
+  "Keeping a quiet seat open",
+  "Listening for another human",
+  "No crowd yet, just a little patience",
+  "Waiting for the next good coincidence",
+  "Holding the door open",
+  "Scanning the quiet corners",
+  "Keeping your place in line"
+]
 
 let matchPollInstalled = false
 let notificationAudioContext = null
@@ -64,6 +74,8 @@ const installMatchmakingWaiting = () => {
 
   let intervalId = null
   let statusIntervalId = null
+  let statusMessageIntervalId = null
+  let statusMessageIndex = 0
   let statusDotCount = 1
 
   document.addEventListener("pointerdown", unlockNotificationAudio, { once: true })
@@ -72,17 +84,24 @@ const installMatchmakingWaiting = () => {
   const stopTimers = () => {
     window.clearInterval(intervalId)
     window.clearInterval(statusIntervalId)
+    window.clearInterval(statusMessageIntervalId)
     matchPollInstalled = false
   }
 
   const renderStatus = () => {
     if (!statusText) return
 
-    statusText.textContent = `${STATUS_MESSAGE}${".".repeat(statusDotCount)}`
+    statusText.textContent = `${STATUS_MESSAGES[statusMessageIndex]}${".".repeat(statusDotCount)}`
   }
 
   const rotateStatusDots = () => {
     statusDotCount = statusDotCount === 3 ? 1 : statusDotCount + 1
+    renderStatus()
+  }
+
+  const rotateStatusMessage = () => {
+    statusMessageIndex = (statusMessageIndex + 1) % STATUS_MESSAGES.length
+    statusDotCount = 1
     renderStatus()
   }
 
@@ -133,6 +152,7 @@ const installMatchmakingWaiting = () => {
   intervalId = window.setInterval(poll, POLL_INTERVAL_MS)
   renderStatus()
   statusIntervalId = window.setInterval(rotateStatusDots, STATUS_DOT_INTERVAL_MS)
+  statusMessageIntervalId = window.setInterval(rotateStatusMessage, STATUS_MESSAGE_ROTATION_MS)
   matchPollInstalled = true
 }
 
