@@ -181,7 +181,7 @@
             <p><%= chart[:subtitle] %></p>
           </div>
         </div>
-        <%= admin_chart_svg(chart[:series], tone: chart[:tone]) %>
+        <%= admin_chart_svg(chart[:series], tone: chart[:tone], title: chart[:title]) %>
       </article>
     <% end %>
   </section>

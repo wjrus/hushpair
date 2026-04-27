@@ -394,11 +394,51 @@
   width: 100%;
   height: auto;
   display: block;
+  overflow: visible;
 }
 
-.admin-chart__label {
+.admin-chart__axis,
+.admin-chart__grid {
+  vector-effect: non-scaling-stroke;
+}
+
+.admin-chart__axis {
+  stroke: color-mix(in srgb, var(--muted) 42%, transparent);
+  stroke-width: 1.25;
+}
+
+.admin-chart__grid {
+  stroke: color-mix(in srgb, var(--muted) 18%, transparent);
+  stroke-width: 1;
+}
+
+.admin-chart__bar {
+  outline: none;
+  transition: opacity 150ms ease, filter 150ms ease;
+}
+
+.admin-chart__bar:hover,
+.admin-chart__bar:focus {
+  opacity: 0.86;
+  filter: brightness(1.08);
+}
+
+.admin-chart__label,
+.admin-chart__tick,
+.admin-chart__value {
   fill: var(--muted);
   font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.admin-chart__tick,
+.admin-chart__label {
+  font-size: 0.68rem;
+}
+
+.admin-chart__value {
+  fill: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 @media (max-width: 900px) {
