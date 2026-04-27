@@ -26,7 +26,7 @@
           <%= form.number_field :message_retention_hours, min: 1, max: 720, step: 1, class: "toolbar-input toolbar-input-small", placeholder: "24" %>
           <span class="toolbar-unit">hours</span>
         </div>
-        <span class="toolbar-unit retention-detail-group" data-retention-detail="forever" <%= "hidden" unless room.forever? %>>room expiry</span>
+        <span class="toolbar-unit retention-detail-group toolbar-unit-forever" data-retention-detail="forever" <%= "hidden" unless room.forever? %>>No message limit before the room expires</span>
         <% if params[:participant_token].present? %>
           <%= hidden_field_tag :participant_token, params[:participant_token] %>
         <% end %>

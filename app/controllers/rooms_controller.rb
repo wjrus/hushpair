@@ -270,9 +270,9 @@ class RoomsController < ApplicationController
 
   def retention_mode_options
     [
-      [ "Last", "line_count" ],
-      [ "For", "time_window" ],
-      [ "Until expiry", "forever" ]
+      [ "Last messages", "line_count" ],
+      [ "For hours", "time_window" ],
+      [ "Until room expiry", "forever" ]
     ]
   end
 
