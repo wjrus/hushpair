@@ -74,6 +74,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
 
     assert_equal 200, creator.response.status
     assert_match "Room expired", creator.response.body
+    assert_match "Go home", creator.response.body
     assert_no_match "data-chat-room-public-id", creator.response.body
   end
 
@@ -82,7 +83,7 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
 
     assert_equal 404, response.status
     assert_match "Chat not found", response.body
-    assert_match "Start a new chat", response.body
+    assert_match "Go home", response.body
   end
 
   test "room page prunes stale room token cookies" do
@@ -145,6 +146,22 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_match "Chats are always temporary", creator.response.body
     assert_match "Your open rooms", creator.response.body
     assert_match "Open", creator.response.body
+  end
+
+  test "home page hides expired rooms for the current browser session" do
+    creator = open_session
+    creator.post rooms_path, params: { nickname: "Quiet Fox" }
+    assert_equal 302, creator.response.status
+
+    room = Room.order(:created_at).last
+    room.update!(expires_at: 1.minute.ago)
+
+    creator.get root_path
+
+    assert_equal 200, creator.response.status
+    assert_predicate room.reload, :expired?
+    assert_no_match "Your open rooms", creator.response.body
+    assert_no_match room.slug.tr("-", " "), creator.response.body
   end
 
   test "about page describes private rooms and anonymous matching" do
