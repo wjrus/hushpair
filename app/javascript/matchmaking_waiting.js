@@ -1,14 +1,8 @@
 const POLL_INTERVAL_MS = 2000
-const STATUS_ROTATION_MS = 5000
+const STATUS_DOT_INTERVAL_MS = 3000
 const TRANSIENT_STATUS_MIN = 500
 const BACKGROUND_MATCH_REDIRECT_DELAY_MS = 700
-const STATUS_MESSAGES = [
-  "Waiting for a match.",
-  "Still looking for someone available.",
-  "Keeping your search open.",
-  "No rush. We’ll move you when someone arrives.",
-  "Looking for another quiet human."
-]
+const STATUS_MESSAGE = "Still looking for someone available"
 
 let matchPollInstalled = false
 let notificationAudioContext = null
@@ -70,7 +64,7 @@ const installMatchmakingWaiting = () => {
 
   let intervalId = null
   let statusIntervalId = null
-  let statusIndex = 0
+  let statusDotCount = 1
 
   document.addEventListener("pointerdown", unlockNotificationAudio, { once: true })
   document.addEventListener("keydown", unlockNotificationAudio, { once: true })
@@ -81,11 +75,15 @@ const installMatchmakingWaiting = () => {
     matchPollInstalled = false
   }
 
-  const rotateStatus = () => {
+  const renderStatus = () => {
     if (!statusText) return
 
-    statusIndex = (statusIndex + 1) % STATUS_MESSAGES.length
-    statusText.textContent = STATUS_MESSAGES[statusIndex]
+    statusText.textContent = `${STATUS_MESSAGE}${".".repeat(statusDotCount)}`
+  }
+
+  const rotateStatusDots = () => {
+    statusDotCount = statusDotCount === 3 ? 1 : statusDotCount + 1
+    renderStatus()
   }
 
   const poll = async () => {
@@ -133,7 +131,8 @@ const installMatchmakingWaiting = () => {
   }
 
   intervalId = window.setInterval(poll, POLL_INTERVAL_MS)
-  statusIntervalId = window.setInterval(rotateStatus, STATUS_ROTATION_MS)
+  renderStatus()
+  statusIntervalId = window.setInterval(rotateStatusDots, STATUS_DOT_INTERVAL_MS)
   matchPollInstalled = true
 }
 
