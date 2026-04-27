@@ -266,7 +266,7 @@ const initRoomChat = (root) => {
 
   const redirectToMatchIfNeeded = (room) => {
     const nextMatchUrl = room.match_url || (
-      resilientRoomStateEnabled && room.status === "ended" && room.end_reason === "ended_by_next_match"
+      resilientRoomStateEnabled && room.status === "ended" && room.end_reason?.startsWith("ended_by_")
         ? fallbackMatchUrl
         : null
     )

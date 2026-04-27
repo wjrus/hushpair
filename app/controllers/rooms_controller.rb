@@ -352,14 +352,12 @@ class RoomsController < ApplicationController
   end
 
   def next_match_redirect_path_for(room)
-    return unless room.random_match? && room.ended? && room.end_reason == "ended_by_next_match"
+    return unless MatchHandoff.handoff?(room)
 
     match_path(reason: "next")
   end
 
   def next_match_system_notice_for(room)
-    return unless room.random_match? && room.ended? && room.end_reason == "ended_by_next_match"
-
-    "Your chat partner moved on. Looking for someone new..."
+    MatchHandoff.system_notice(room)
   end
 end

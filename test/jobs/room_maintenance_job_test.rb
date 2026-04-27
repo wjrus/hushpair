@@ -105,4 +105,52 @@ class RoomMaintenanceJobTest < ActiveJob::TestCase
       assert participant.reload.left_at.nil?
     end
   end
+
+  test "it ends inactive matched rooms and requeues recently seen participants" do
+    now = Time.zone.parse("2026-04-24 12:00:00 UTC")
+    travel_to now do
+      room = Room.create!(
+        expires_at: 1.day.from_now,
+        last_message_at: 5.minutes.ago,
+        max_participants: 2,
+        mode: :random_match,
+        status: :active
+      )
+      stale_session = AnonymousSession.create!(
+        last_seen_at: 3.minutes.ago,
+        session_token_digest: SecureRandom.hex(16),
+        status: :active
+      )
+      active_session = AnonymousSession.create!(
+        current_nickname: "Quiet Fox",
+        last_seen_at: 10.seconds.ago,
+        session_token_digest: SecureRandom.hex(16),
+        status: :active
+      )
+      room.room_participants.create!(
+        anonymous_session: stale_session,
+        joined_at: 10.minutes.ago,
+        last_seen_at: 3.minutes.ago,
+        participant_token_digest: SecureRandom.hex(32),
+        role: :creator
+      )
+      active_participant = room.room_participants.create!(
+        anonymous_session: active_session,
+        joined_at: 10.minutes.ago,
+        last_seen_at: 10.seconds.ago,
+        nickname: "Quiet Fox",
+        participant_token_digest: SecureRandom.hex(32),
+        role: :guest
+      )
+
+      RoomMaintenanceJob.perform_now(now: now)
+
+      assert_equal "ended", room.reload.status
+      assert_equal "ended_by_participant_inactive", room.end_reason
+      assert active_participant.reload.left_at.present?
+
+      queue_entry = MatchQueueEntry.current_for(active_session)
+      assert_predicate queue_entry, :queued?
+    end
+  end
 end
