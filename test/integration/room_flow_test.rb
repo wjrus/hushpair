@@ -284,6 +284,24 @@ class RoomFlowTest < ActionDispatch::IntegrationTest
     assert_equal room_path(matched_room), payload.fetch("room_url")
   end
 
+  test "next reason abandons current matched room before searching again" do
+    first = open_session
+    first.post match_path, params: { nickname: "Quiet Fox" }
+
+    second = open_session
+    second.post match_path, params: { nickname: "Night Owl" }
+    matched_room = Room.order(:created_at).last
+
+    first.get match_path(reason: "next")
+
+    assert_equal 200, first.response.status
+    assert_match "back in line", first.response.body
+    assert_no_match room_path(matched_room), first.response.body
+
+    abandoned_entry = MatchQueueEntry.where(matched_room: matched_room).order(:updated_at).last
+    assert_predicate abandoned_entry, :cancelled?
+  end
+
   test "matching status endpoint does not expose public queue size" do
     first = open_session
     first.post match_path, params: { nickname: "Quiet Fox" }

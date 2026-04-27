@@ -36,4 +36,8 @@ class MatchQueueEntry < ApplicationRecord
 
     update!(status: :cancelled, cancelled_at: at, expires_at: at)
   end
+
+  def abandon!(at: Time.current)
+    update!(status: :cancelled, cancelled_at: at, expires_at: at)
+  end
 end

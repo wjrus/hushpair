@@ -3,6 +3,7 @@ class MatchmakingController < ApplicationController
 
   def show
     @match_reason = params[:reason].presence_in(%w[next])
+    abandon_current_matched_entry! if @match_reason == "next"
     @queue_entry = current_queue_entry || renew_queue_entry!
 
     @queue_entry.expire_if_needed!
@@ -50,6 +51,14 @@ class MatchmakingController < ApplicationController
 
   def current_queue_entry
     @current_queue_entry ||= MatchQueueEntry.current_for(current_anonymous_session)
+  end
+
+  def abandon_current_matched_entry!
+    entry = current_queue_entry
+    return unless entry&.matched?
+
+    entry.abandon!
+    @current_queue_entry = nil
   end
 
   def renew_queue_entry!
